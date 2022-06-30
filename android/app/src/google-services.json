@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "133147316509",
+    "project_id": "mingskitchen-26b5b",
+    "storage_bucket": "mingskitchen-26b5b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:133147316509:android:2a0dc932c51b96afd551f4",
+        "android_client_info": {
+          "package_name": "com.app.mingskitchen"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "133147316509-vpuch4t3jplv0ucoj8j92mp52h78pmqg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3eWoR2H9SeBwf_5hShy5ncjvq1ZuouM8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "133147316509-vpuch4t3jplv0ucoj8j92mp52h78pmqg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
