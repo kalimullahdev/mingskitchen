@@ -2,14 +2,13 @@ import 'package:flutter_restaurant/data/model/response/language_model.dart';
 import 'package:flutter_restaurant/utill/images.dart';
 
 class AppConstants {
-  static const String APP_NAME = 'MingsKichen';
-  static const double APP_VERSION = 7.2;
+  static const String APP_NAME = 'eFood';
+  static const double APP_VERSION = 8.0;
   static const String BASE_URL = 'https://admin.mingskitchen.ca/';
   static const String CATEGORY_URI = '/api/v1/categories';
   static const String BANNER_URI = '/api/v1/banners';
-
-  static const String POPULAR_PRODUCT_URI = '/api/v1/products/latest';
-  static const String BOOK_TABLE = '/api/v1/booktable';
+  static const String LATEST_PRODUCT_URI = '/api/v1/products/latest';
+  static const String POPULAR_PRODUCT_URI = '/api/v1/products/popular';
   static const String SEARCH_PRODUCT_URI = '/api/v1/products/details/';
   static const String SUB_CATEGORY_URI = '/api/v1/categories/childes/';
   static const String CATEGORY_PRODUCT_URI = '/api/v1/categories/products/';
@@ -24,7 +23,7 @@ class AppConstants {
   static const String VERIFY_PHONE_URI = '/api/v1/auth/verify-phone';
   static const String CHECK_EMAIL_URI = '/api/v1/auth/check-email';
   static const String VERIFY_EMAIL_URI = '/api/v1/auth/verify-email';
-  static const String REGISTER_URI = '/api/v1/auth/register';
+  static const String REGISTER_URI = '/api/v1/auth/registration';
   static const String LOGIN_URI = '/api/v1/auth/login';
   static const String TOKEN_URI = '/api/v1/customer/cm-firebase-token';
   static const String PLACE_ORDER_URI = '/api/v1/customer/order/place';
@@ -87,8 +86,8 @@ class AppConstants {
   static const String SEARCH_ADDRESS = 'search_address';
   static const String TOPIC = 'notify';
   static const String ON_BOARDING_SKIP = 'on_boarding_skip';
+  static const String PLACE_ORDER_DATA = 'place_order_data';
 
-  // static const String LANG_SKIP = 'lang_skip';
   static List<LanguageModel> languages = [
     LanguageModel(
         imageUrl: Images.united_kindom,

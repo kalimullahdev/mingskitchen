@@ -20,29 +20,66 @@ class ProductProvider extends ChangeNotifier {
 
   // Latest products
   List<Product> _popularProductList;
+  List<Product> _latestProductList;
   bool _isLoading = false;
   int _popularPageSize;
+  int _latestPageSize;
   List<String> _offsetList = [];
   List<int> _variationIndex = [0];
   int _quantity = 1;
   List<bool> _addOnActiveList = [];
   List<int> _addOnQtyList = [];
   bool _seeMoreButtonVisible= true;
-  int offset = 1;
+  int latestOffset = 1;
+  int popularOffset = 1;
+  int _cartIndex = -1;
 
   List<Product> get popularProductList => _popularProductList;
+  List<Product> get latestProductList => _latestProductList;
   bool get isLoading => _isLoading;
   int get popularPageSize => _popularPageSize;
+  int get latestPageSize => _latestPageSize;
   List<int> get variationIndex => _variationIndex;
   int get quantity => _quantity;
   List<bool> get addOnActiveList => _addOnActiveList;
   List<int> get addOnQtyList => _addOnQtyList;
   bool get seeMoreButtonVisible => _seeMoreButtonVisible;
+  int get cartIndex => _cartIndex;
 
 
-  Future<void> getPopularProductList(BuildContext context , bool reload, String _offset, String languageCode) async {
+  Future<void> getLatestProductList(BuildContext context , bool reload, String _offset, String languageCode) async {
     if(reload || _offset == '1') {
-      offset = 1 ;
+      latestOffset = 1 ;
+      _offsetList = [];
+    }
+    if (!_offsetList.contains(_offset)) {
+      _offsetList = [];
+      _offsetList.add(_offset);
+      ApiResponse apiResponse = await productRepo.getLatestProductList(_offset, languageCode);
+      if (apiResponse.response != null && apiResponse.response.statusCode == 200) {
+        print('${apiResponse.response.data}');
+        if (reload || _offset == '1') {
+          _latestProductList = [];
+        }
+        _latestProductList.addAll(ProductModel.fromJson(apiResponse.response.data).products);
+        _latestPageSize = ProductModel.fromJson(apiResponse.response.data).totalSize;
+        _isLoading = false;
+        notifyListeners();
+      } else {
+        showCustomSnackBar(apiResponse.error.toString(), context);
+      }
+    } else {
+      if(isLoading) {
+        _isLoading = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<bool> getPopularProductList(BuildContext context , bool reload, String _offset, String languageCode) async {
+    bool _apiSuccess = false;
+    if(reload || _offset == '1') {
+      popularOffset = 1 ;
       _offsetList = [];
     }
     if (!_offsetList.contains(_offset)) {
@@ -50,6 +87,7 @@ class ProductProvider extends ChangeNotifier {
       _offsetList.add(_offset);
       ApiResponse apiResponse = await productRepo.getPopularProductList(_offset, languageCode);
       if (apiResponse.response != null && apiResponse.response.statusCode == 200) {
+        _apiSuccess = true;
         if (reload || _offset == '1') {
           _popularProductList = [];
         }
@@ -66,6 +104,7 @@ class ProductProvider extends ChangeNotifier {
         notifyListeners();
       }
     }
+    return _apiSuccess;
   }
 
   void showBottomLoader() {
@@ -73,16 +112,14 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void initData(Product product, CartModel cart) {
+  void initData(Product product, CartModel cart, BuildContext context) {
     _variationIndex = [];
     _addOnQtyList = [];
     _addOnActiveList = [];
     if(cart != null) {
-      print('product fron cart : ${cart.price}');
-
       _quantity = cart.quantity;
       List<String> _variationTypes = [];
-      if(cart.variation[0].type != null) {
+      if(cart.variation.length != null && cart.variation.length > 0 && cart.variation[0].type != null) {
         _variationTypes.addAll(cart.variation[0].type.split('-'));
       }
       int _varIndex = 0;
@@ -107,12 +144,13 @@ class ProductProvider extends ChangeNotifier {
         }
       });
     }else {
-       _quantity = 1;
-       product.choiceOptions.forEach((element) => _variationIndex.add(0));
+      _quantity = 1;
+      product.choiceOptions.forEach((element) => _variationIndex.add(0));
       product.addOns.forEach((addOn) {
         _addOnActiveList.add(false);
         _addOnQtyList.add(1);
       });
+      setExistInCart(product, context, notify: false);
     }
   }
 
@@ -134,9 +172,47 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setCartVariationIndex(int index, int i) {
+  void setCartVariationIndex(int index, int i, Product product, String variationType, BuildContext context) {
     _variationIndex[index] = i;
+    _quantity = 1;
+    setExistInCart(product, context);
     notifyListeners();
+  }
+
+  int setExistInCart(Product product, BuildContext context,{bool notify = true}) {
+    List<String> _variationList = [];
+    for (int index = 0; index < product.choiceOptions.length; index++) {
+      _variationList.add(product.choiceOptions[index].options[_variationIndex[index]].replaceAll(' ', ''));
+    }
+    String variationType = '';
+    bool isFirst = true;
+    _variationList.forEach((variation) {
+      if (isFirst) {
+        variationType = '$variationType$variation';
+        isFirst = false;
+      } else {
+        variationType = '$variationType-$variation';
+      }
+    });
+    final _cartProvider =  Provider.of<CartProvider>(context, listen: false);
+    _cartIndex = _cartProvider.isExistInCart(product.id, variationType, false, null);
+    if(_cartIndex != -1) {
+      _quantity = _cartProvider.cartList[_cartIndex].quantity;
+      _addOnActiveList = [];
+      _addOnQtyList = [];
+      List<int> _addOnIdList = [];
+      _cartProvider.cartList[_cartIndex].addOnIds.forEach((addOnId) => _addOnIdList.add(addOnId.id));
+      product.addOns.forEach((addOn) {
+        if(_addOnIdList.contains(addOn.id)) {
+          _addOnActiveList.add(true);
+          _addOnQtyList.add(_cartProvider.cartList[_cartIndex].addOnIds[_addOnIdList.indexOf(addOn.id)].quantity);
+        }else {
+          _addOnActiveList.add(false);
+          _addOnQtyList.add(1);
+        }
+      });
+    }
+    return _cartIndex;
   }
 
   void addAddOn(bool isAdd, int index) {
@@ -233,27 +309,22 @@ class ProductProvider extends ChangeNotifier {
 
   void moreProduct(BuildContext context) {
     int pageSize;
-    pageSize =(popularPageSize / 10).ceil();
+    pageSize =(latestPageSize / 10).ceil();
 
-    if (offset < pageSize) {
-      offset++;
+    if (latestOffset < pageSize) {
+      latestOffset++;
       showBottomLoader();
-      getPopularProductList(
-        context, false, offset.toString(), Provider.of<LocalizationProvider>(context, listen: false).locale.languageCode,
+      getLatestProductList(
+        context, false, latestOffset.toString(),
+        Provider.of<LocalizationProvider>(context, listen: false).locale.languageCode,
       );
     }
-    // if(offset >= pageSize) {
-    //   _seeMoreButtonVisible = false;
-    //   // notifyListeners();
-    // }
-    // notifyListeners();
   }
 
 
   void seeMoreReturn(){
-    offset = 1;
+    latestOffset = 1;
     _seeMoreButtonVisible = true;
-
   }
 
 }

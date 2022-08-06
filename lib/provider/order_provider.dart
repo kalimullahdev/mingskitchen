@@ -5,17 +5,23 @@ import 'package:flutter_restaurant/data/model/response/base/error_response.dart'
 import 'package:flutter_restaurant/data/model/response/delivery_man_model.dart';
 import 'package:flutter_restaurant/data/model/response/distance_model.dart';
 import 'package:flutter_restaurant/data/model/response/order_details_model.dart';
-import 'package:flutter_restaurant/data/model/response/response_model.dart';
 import 'package:flutter_restaurant/data/model/response/order_model.dart';
+import 'package:flutter_restaurant/data/model/response/response_model.dart';
 import 'package:flutter_restaurant/data/model/response/timeslote_model.dart';
 import 'package:flutter_restaurant/data/repository/order_repo.dart';
 import 'package:flutter_restaurant/helper/api_checker.dart';
+import 'package:flutter_restaurant/helper/date_converter.dart';
+import 'package:flutter_restaurant/provider/splash_provider.dart';
+import 'package:flutter_restaurant/utill/app_constants.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OrderProvider extends ChangeNotifier {
   final OrderRepo orderRepo;
-  OrderProvider({@required this.orderRepo});
+  final SharedPreferences sharedPreferences;
+  OrderProvider({ @required this.sharedPreferences,@required this.orderRepo});
 
   List<OrderModel> _runningOrderList;
   List<OrderModel> _historyOrderList;
@@ -34,6 +40,7 @@ class OrderProvider extends ChangeNotifier {
   int _selectDateSlot = 0;
   int _selectTimeSlot = 0;
   double _distance = -1;
+  bool _isRestaurantCloseShow = true;
 
   List<OrderModel> get runningOrderList => _runningOrderList;
   List<OrderModel> get historyOrderList => _historyOrderList;
@@ -52,6 +59,14 @@ class OrderProvider extends ChangeNotifier {
   int get selectDateSlot => _selectDateSlot;
   int get selectTimeSlot => _selectTimeSlot;
   double get distance => _distance;
+  bool get isRestaurantCloseShow => _isRestaurantCloseShow;
+
+  void changeStatus(bool status, {bool notify = false}) {
+    _isRestaurantCloseShow = status;
+    if(notify) {
+      notifyListeners();
+    }
+  }
 
   Future<void> getOrderList(BuildContext context) async {
     ApiResponse apiResponse = await orderRepo.getOrderList();
@@ -86,6 +101,7 @@ class OrderProvider extends ChangeNotifier {
     ApiResponse apiResponse = await orderRepo.getOrderDetails(orderID);
     _isLoading = false;
     if (apiResponse.response != null && apiResponse.response.statusCode == 200) {
+      print('order Details: ${apiResponse.response}');
       _orderDetails = [];
       apiResponse.response.data.forEach((orderDetail) => _orderDetails.add(OrderDetailsModel.fromJson(orderDetail)));
     } else {
@@ -123,7 +139,7 @@ class OrderProvider extends ChangeNotifier {
       if (apiResponse.response != null && apiResponse.response.statusCode == 200) {
         _trackModel = OrderModel.fromJson(apiResponse.response.data);
         _responseModel = ResponseModel(true, apiResponse.response.data.toString());
-        debugPrint('responseModel : $_responseModel');
+        debugPrint('responseModel : ${_responseModel.message}');
       } else {
         _responseModel = ResponseModel(false, apiResponse.error.errors[0].message);
         ApiChecker.checkApi(context, apiResponse);
@@ -140,14 +156,13 @@ class OrderProvider extends ChangeNotifier {
   Future<void> placeOrder(PlaceOrderBody placeOrderBody, Function callback) async {
     _isLoading = true;
     notifyListeners();
-    print(placeOrderBody.toJson());
+    print('order body : ${placeOrderBody.toJson()}');
     ApiResponse apiResponse = await orderRepo.placeOrder(placeOrderBody);
     _isLoading = false;
     if (apiResponse.response != null && apiResponse.response.statusCode == 200) {
       String message = apiResponse.response.data['message'];
       String orderID = apiResponse.response.data['order_id'].toString();
       callback(true, message, orderID, placeOrderBody.deliveryAddressId);
-      //print('-------- Order placed successfully $orderID ----------');
     } else {
       String errorMessage;
       if (apiResponse.error is String) {
@@ -241,35 +256,67 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> initializeTimeSlot(DateTime restaurantOpeningTime, DateTime restaurantClosingTime) async {
+  Future<void> initializeTimeSlot(BuildContext context) async {
+   final _scheduleTime =  Provider.of<SplashProvider>(context, listen: false).configModel.restaurantScheduleTime;
+   int _duration = Provider.of<SplashProvider>(context, listen: false).configModel.scheduleOrderSlotDuration;
     _timeSlots = [];
     _allTimeSlots = [];
     _selectDateSlot = 0;
-    _selectDateSlot = 0;
     int _minutes = 0;
-    if(restaurantClosingTime.difference(restaurantOpeningTime).isNegative) {
-      _minutes = restaurantOpeningTime.difference(restaurantClosingTime).inMinutes;
-    }else {
-      _minutes = restaurantClosingTime.difference(restaurantOpeningTime).inMinutes;
-    }
-    if(_minutes > 30) {
-      DateTime _time = restaurantOpeningTime;
-      for(;;) {
-        if(_time.isBefore(restaurantClosingTime)) {
-          DateTime _start = _time;
-          DateTime _end = _start.add(Duration(minutes: 30));
-          if(_end.isAfter(restaurantClosingTime)) {
-            _end = restaurantClosingTime;
+    DateTime _now = DateTime.now();
+    for(int index = 0; index < _scheduleTime.length; index++) {
+      DateTime _openTime = DateTime(
+        _now.year,
+        _now.month,
+        _now.day,
+        DateConverter.convertStringTimeToDate(_scheduleTime[index].openingTime).hour,
+        DateConverter.convertStringTimeToDate(_scheduleTime[index].openingTime).minute,
+      );
+
+      DateTime _closeTime = DateTime(
+        _now.year,
+        _now.month,
+        _now.day,
+        DateConverter.convertStringTimeToDate(_scheduleTime[index].closingTime).hour,
+        DateConverter.convertStringTimeToDate(_scheduleTime[index].closingTime).minute,
+      );
+
+      if(_closeTime.difference(_openTime).isNegative) {
+        _minutes = _openTime.difference(_closeTime).inMinutes;
+      }else {
+        _minutes = _closeTime.difference(_openTime).inMinutes;
+      }
+      if(_duration > 0 && _minutes > _duration) {
+        DateTime _time = _openTime;
+        for(;;) {
+          if(_time.isBefore(_closeTime)) {
+            DateTime _start = _time;
+            DateTime _end = _start.add(Duration(minutes: _duration));
+            if(_end.isAfter(_closeTime)) {
+              _end = _closeTime;
+            }
+            _timeSlots.add(TimeSlotModel(day: int.tryParse(_scheduleTime[index].day), startTime: _start, endTime: _end));
+            _allTimeSlots.add(TimeSlotModel(day: int.tryParse(_scheduleTime[index].day), startTime: _start, endTime: _end));
+            _time = _time.add(Duration(minutes: _duration));
+          }else {
+            break;
           }
-          _timeSlots.add(TimeSlotModel(startTime: _time, endTime: _time.add(Duration(minutes: 30))));
-          _allTimeSlots.add(TimeSlotModel(startTime: _time, endTime: _time.add(Duration(minutes: 30))));
-          _time = _time.add(Duration(minutes: 30));
-        }else {
-          break;
         }
+      }else {
+        _timeSlots.add(TimeSlotModel(day: int.tryParse(_scheduleTime[index].day), startTime: _openTime, endTime: _closeTime));
+        _allTimeSlots.add(TimeSlotModel(day: int.tryParse(_scheduleTime[index].day), startTime: _openTime, endTime: _closeTime));
       }
     }
     validateSlot(_allTimeSlots, 0, notify: false);
+  }
+  void sortTime() {
+    _timeSlots.sort((a, b){
+      return a.startTime.compareTo(b.startTime);
+    });
+
+    _allTimeSlots.sort((a, b){
+      return a.startTime.compareTo(b.startTime);
+    });
   }
 
   void updateTimeSlot(int index) {
@@ -285,24 +332,31 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+
+
   void validateSlot(List<TimeSlotModel> slots, int dateIndex, {bool notify = true}) {
     _timeSlots = [];
+    int _day = 0;
     if(dateIndex == 0) {
-      DateTime _date = DateTime.now();
-      slots.forEach((slot) {
-        DateTime _time = slot.endTime;
-        DateTime _dateTime = DateTime(_date.year, _date.month, _date.day, _time.hour, _time.minute, _time.second);
-        if (_dateTime.isAfter(DateTime.now())) {
-          _timeSlots.add(slot);
-        }
-      });
+      _day = DateTime.now().weekday;
     }else {
-      _timeSlots.addAll(_allTimeSlots);
+      _day = DateTime.now().add(Duration(days: 1)).weekday;
     }
+    if(_day == 7) {
+      _day = 0;
+    }
+    slots.forEach((slot) {
+      if (_day == slot.day && (dateIndex == 0 ? slot.endTime.isAfter(DateTime.now()) : true)) {
+        _timeSlots.add(slot);
+      }
+    });
+
+
     if(notify) {
       notifyListeners();
     }
   }
+
 
   Future<bool> getDistanceInMeter(LatLng originLatLng, LatLng destinationLatLng) async {
     _distance = -1;
@@ -324,6 +378,16 @@ class OrderProvider extends ChangeNotifier {
     }
     notifyListeners();
     return _isSuccess;
+  }
+
+  Future<void> setPlaceOrder(String placeOrder)async{
+    await sharedPreferences.setString(AppConstants.PLACE_ORDER_DATA, placeOrder);
+  }
+  String getPlaceOrder(){
+    return sharedPreferences.getString(AppConstants.PLACE_ORDER_DATA);
+  }
+  Future<void> clearPlaceOrder()async{
+    await sharedPreferences.remove(AppConstants.PLACE_ORDER_DATA);
   }
 
 

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_restaurant/data/datasource/remote/dio/dio_client.dart';
 import 'package:flutter_restaurant/data/datasource/remote/exception/api_error_handler.dart';
@@ -17,9 +18,11 @@ class BannerRepo {
     }
   }
 
-  Future<ApiResponse> getProductDetails(String productID) async {
+  Future<ApiResponse> getProductDetails(String productID, String languageCode) async {
     try {
-      final response = await dioClient.get('${AppConstants.PRODUCT_DETAILS_URI}$productID');
+      final response = await dioClient.get('${AppConstants.PRODUCT_DETAILS_URI}$productID',
+          options: Options(headers: {'X-localization': languageCode}));
+
       return ApiResponse.withSuccess(response);
     } catch (e) {
       return ApiResponse.withError(ApiErrorHandler.getMessage(e));

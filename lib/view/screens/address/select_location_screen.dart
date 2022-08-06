@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_restaurant/helper/responsive_helper.dart';
 import 'package:flutter_restaurant/localization/language_constrants.dart';
@@ -8,8 +10,8 @@ import 'package:flutter_restaurant/utill/dimensions.dart';
 import 'package:flutter_restaurant/utill/images.dart';
 import 'package:flutter_restaurant/view/base/custom_button.dart';
 import 'package:flutter_restaurant/view/base/footer_view.dart';
-import 'package:flutter_restaurant/view/screens/address/widget/location_search_dialog.dart';
 import 'package:flutter_restaurant/view/base/web_app_bar.dart';
+import 'package:flutter_restaurant/view/screens/address/widget/location_search_dialog.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -91,9 +93,10 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                         mapType: MapType.normal,
                         initialCameraPosition:  CameraPosition(
                           target:  _initialPosition,
-                          zoom: 15,
+                          zoom: 16,
                         ),
                         zoomControlsEnabled: false,
+                        minMaxZoomPreference: MinMaxZoomPreference(0, 16),
                         compassEnabled: false,
                         indoorViewEnabled: true,
                         mapToolbarEnabled: true,
@@ -103,11 +106,11 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                         onCameraMove: ((_position) => _cameraPosition = _position),
                         // markers: Set<Marker>.of(locationProvider.markers),
                         onMapCreated: (GoogleMapController controller) {
-                          Future.delayed(Duration(milliseconds: 300)).then((value) {
+                          Future.delayed(Duration(milliseconds: 500)).then((value) {
                             _controller = controller;
-                            _controller.moveCamera(CameraUpdate.newCameraPosition(CameraPosition(target: locationProvider.pickPosition.longitude.toInt() == 0 &&  locationProvider.pickPosition.latitude.toInt() == 0 ? _initialPosition : LatLng(
+                            _controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: locationProvider.pickPosition.longitude.toInt() == 0 &&  locationProvider.pickPosition.latitude.toInt() == 0 ? _initialPosition : LatLng(
                               locationProvider.pickPosition.latitude , locationProvider.pickPosition.longitude,
-                            ), zoom: 17)));
+                            ), zoom: 15)));
                           });
 
 
@@ -173,9 +176,9 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                     onTap: locationProvider.loading ? null : () {
                                       if(widget.googleMapController != null) {
                                         widget.googleMapController.setMapStyle('[]');
-                                        widget.googleMapController.moveCamera(CameraUpdate.newCameraPosition(CameraPosition(target: LatLng(
+                                        widget.googleMapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: LatLng(
                                           locationProvider.pickPosition.latitude, locationProvider.pickPosition.longitude,
-                                        ), zoom: 17)));
+                                        ), zoom: 16)));
 
                                         if(ResponsiveHelper.isWeb()) {
                                           locationProvider.setAddAddressData();

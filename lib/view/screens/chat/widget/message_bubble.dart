@@ -112,7 +112,7 @@ class MessageBubble extends StatelessWidget {
 
             SizedBox(height: Dimensions.PADDING_SIZE_SMALL),
             SizedBox(),
-            Text(DateConverter.localDateToIsoStringAMPM(DateTime.parse(messages.createdAt)), style: rubikRegular.copyWith(color: Theme.of(context).hintColor,fontSize: Dimensions.FONT_SIZE_SMALL),),
+            Text(DateConverter.formatDate(DateConverter.isoStringToLocalDate(messages.createdAt), context, isSecond: false), style: rubikRegular.copyWith(color: Theme.of(context).hintColor,fontSize: Dimensions.FONT_SIZE_SMALL),),
           ],
         ),
       ),
@@ -212,7 +212,7 @@ class MessageBubble extends StatelessWidget {
 
 
               SizedBox(height: Dimensions.PADDING_SIZE_SMALL),
-              Text(DateConverter.localDateToIsoStringAMPM(DateTime.parse(messages.createdAt)), style: rubikRegular.copyWith(color: Theme.of(context).hintColor,fontSize: Dimensions.FONT_SIZE_SMALL),),
+              Text(DateConverter.formatDate(DateConverter.isoStringToLocalDate(messages.createdAt), context, isSecond: false), style: rubikRegular.copyWith(color: Theme.of(context).hintColor,fontSize: Dimensions.FONT_SIZE_SMALL),),
 
             ],
           ),
@@ -318,7 +318,7 @@ class MessageBubble extends StatelessWidget {
 
 
               SizedBox(height: Dimensions.PADDING_SIZE_SMALL),
-              Text(DateConverter.localDateToIsoStringAMPM(DateTime.parse(messages.createdAt)), style: rubikRegular.copyWith(color: Theme.of(context).hintColor,fontSize: Dimensions.FONT_SIZE_SMALL),),
+              Text(DateConverter.formatDate(DateConverter.isoStringToLocalDate(messages.createdAt), context, isSecond: false), style: rubikRegular.copyWith(color: Theme.of(context).hintColor,fontSize: Dimensions.FONT_SIZE_SMALL),),
             ],
           ),
         ),
@@ -420,7 +420,7 @@ class MessageBubble extends StatelessWidget {
 
 
                     SizedBox(height: Dimensions.PADDING_SIZE_SMALL),
-                    Text(DateConverter.localDateToIsoStringAMPM(DateTime.parse(messages.createdAt)), style: rubikRegular.copyWith(color: Theme.of(context).hintColor,fontSize: Dimensions.FONT_SIZE_SMALL),),
+                    Text(DateConverter.formatDate(DateConverter.isoStringToLocalDate(messages.createdAt), context, isSecond: false), style: rubikRegular.copyWith(color: Theme.of(context).hintColor,fontSize: Dimensions.FONT_SIZE_SMALL),),
                     SizedBox(height: Dimensions.PADDING_SIZE_DEFAULT),
                   ],
                 );

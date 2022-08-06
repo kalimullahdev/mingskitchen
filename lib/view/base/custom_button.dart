@@ -5,8 +5,9 @@ import 'package:flutter_restaurant/utill/dimensions.dart';
 class CustomButton extends StatelessWidget {
   final Function onTap;
   final String btnTxt;
+  final TextStyle textStyle;
   final Color backgroundColor;
-  CustomButton({this.onTap, @required this.btnTxt, this.backgroundColor});
+  CustomButton({this.onTap, @required this.btnTxt, this.backgroundColor, this.textStyle});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class CustomButton extends StatelessWidget {
       onPressed: onTap,
       style: flatButtonStyle,
       child: Text(btnTxt??"",
-          style: Theme.of(context).textTheme.headline3.copyWith(color: ColorResources.COLOR_WHITE, fontSize: Dimensions.FONT_SIZE_LARGE)),
+          style: textStyle ?? Theme.of(context).textTheme.headline3.copyWith(color:ColorResources.COLOR_WHITE, fontSize: Dimensions.FONT_SIZE_LARGE)),
     );
   }
 }

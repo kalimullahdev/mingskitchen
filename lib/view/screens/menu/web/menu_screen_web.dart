@@ -18,13 +18,6 @@ class MenuScreenWeb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // bool _isReload = true;
-    // final bool _isLoggedIn = Provider.of<AuthProvider>(context, listen: false).isLoggedIn();
-    // if(_isLoggedIn && _isReload) {
-    //   Provider.of<ProfileProvider>(context,listen: false).getUserInfo(context);
-    //   _isReload = false;
-    //   debugPrint('Get user Data');
-    // }
     return SingleChildScrollView(
       child: Column(
             children: [

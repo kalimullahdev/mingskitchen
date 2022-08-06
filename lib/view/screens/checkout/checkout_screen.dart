@@ -1,22 +1,15 @@
 import 'dart:collection';
+import 'dart:convert'as convert;
 import 'dart:typed_data';
 import 'dart:ui';
-import 'package:flutter_restaurant/data/model/response/address_model.dart';
-import 'package:flutter_restaurant/helper/date_converter.dart';
-import 'package:flutter_restaurant/helper/price_converter.dart';
-import 'package:flutter_restaurant/view/base/custom_divider.dart';
-import 'package:flutter_restaurant/view/base/custom_snackbar.dart';
-import 'package:flutter_restaurant/view/base/footer_view.dart';
-import 'package:flutter_restaurant/view/screens/address/widget/permission_dialog.dart';
-import 'package:flutter_restaurant/view/screens/checkout/widget/delivery_fee_dialog.dart';
-import 'package:flutter_restaurant/view/screens/checkout/widget/slot_widget.dart';
-import 'package:flutter_restaurant/view/base/web_app_bar.dart';
-import 'package:universal_html/html.dart' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_restaurant/data/model/body/place_order_body.dart';
+import 'package:flutter_restaurant/data/model/response/address_model.dart';
 import 'package:flutter_restaurant/data/model/response/cart_model.dart';
 import 'package:flutter_restaurant/data/model/response/config_model.dart';
+import 'package:flutter_restaurant/helper/date_converter.dart';
+import 'package:flutter_restaurant/helper/price_converter.dart';
 import 'package:flutter_restaurant/helper/responsive_helper.dart';
 import 'package:flutter_restaurant/localization/language_constrants.dart';
 import 'package:flutter_restaurant/provider/auth_provider.dart';
@@ -34,13 +27,21 @@ import 'package:flutter_restaurant/utill/routes.dart';
 import 'package:flutter_restaurant/utill/styles.dart';
 import 'package:flutter_restaurant/view/base/custom_app_bar.dart';
 import 'package:flutter_restaurant/view/base/custom_button.dart';
+import 'package:flutter_restaurant/view/base/custom_divider.dart';
+import 'package:flutter_restaurant/view/base/custom_snackbar.dart';
 import 'package:flutter_restaurant/view/base/custom_text_field.dart';
+import 'package:flutter_restaurant/view/base/footer_view.dart';
 import 'package:flutter_restaurant/view/base/not_logged_in_screen.dart';
+import 'package:flutter_restaurant/view/base/web_app_bar.dart';
+import 'package:flutter_restaurant/view/screens/address/widget/permission_dialog.dart';
 import 'package:flutter_restaurant/view/screens/checkout/widget/custom_check_box.dart';
+import 'package:flutter_restaurant/view/screens/checkout/widget/delivery_fee_dialog.dart';
+import 'package:flutter_restaurant/view/screens/checkout/widget/slot_widget.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:universal_html/html.dart' as html;
 
 class CheckoutScreen extends StatefulWidget {
   final double amount;
@@ -72,18 +73,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
     _isLoggedIn = Provider.of<AuthProvider>(context, listen: false).isLoggedIn();
     if(_isLoggedIn) {
-      ConfigModel _configModel = Provider.of<SplashProvider>(context, listen: false).configModel;
+      Provider.of<OrderProvider>(context, listen: false).initializeTimeSlot(context).then((value) {
+        Provider.of<OrderProvider>(context, listen: false).sortTime();
+      });
       _branches = Provider.of<SplashProvider>(context, listen: false).configModel.branches;
       if(Provider.of<ProfileProvider>(context, listen: false).userInfoModel == null) {
         Provider.of<ProfileProvider>(context, listen: false).getUserInfo(context);
       }
       Provider.of<LocationProvider>(context, listen: false).initAddressList(context);
-      DateTime _open = DateFormat('HH:mm').parse(_configModel.restaurantOpenTime);
-      DateTime _close = DateFormat('HH:mm').parse(_configModel.restaurantCloseTime);
-      if(_close.isBefore(_open)) {
-        _close = _close.add(Duration(days: 1));
-      }
-      Provider.of<OrderProvider>(context, listen: false).initializeTimeSlot(_open, _close);
+
+
       Provider.of<OrderProvider>(context, listen: false).clearPrevData();
       _isCashOnDeliveryActive = Provider.of<SplashProvider>(context, listen: false).configModel.cashOnDelivery == 'true';
       _isDigitalPaymentActive = Provider.of<SplashProvider>(context, listen: false).configModel.digitalPayment == 'true';
@@ -146,7 +145,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                           ) : BoxDecoration(),
                                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-                                            _branches.length > 1 ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                            _branches.length > 0 ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                               Padding(
                                                 padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
                                                 child: Text(getTranslated('select_branch', context), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
@@ -197,10 +196,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                                   GoogleMap(
                                                     mapType: MapType.normal,
                                                     initialCameraPosition: CameraPosition(
-                                                        target: LatLng(
-                                                      double.parse(_branches[0].latitude),
-                                                      double.parse(_branches[0].longitude),
-                                                    ), zoom: 5,
+                                                      target: LatLng(
+                                                        double.parse(_branches[0].latitude),
+                                                        double.parse(_branches[0].longitude),
+                                                      ), zoom: 5,
                                                     ),
                                                     zoomControlsEnabled: true,
                                                     markers: _markers,
@@ -226,7 +225,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                                   Text(getTranslated('delivery_address', context), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
                                                   Expanded(child: SizedBox()),
                                                   TextButton.icon(
-                                                    onPressed: ()=> Navigator.pushNamed(context, Routes.getAddAddressRoute('checkout', 'add', AddressModel())),
+                                                    onPressed: () => _checkPermission(context, Routes.getAddAddressRoute('checkout', 'add', AddressModel())),
                                                     icon: Icon(Icons.add),
                                                     label: Text(getTranslated('add', context), style: rubikRegular),
                                                   ),
@@ -258,8 +257,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                                             if(_kmWiseCharge) {
                                                               showDialog(context: context, builder: (context) => Center(child: Container(
                                                                 height: 100, width: 100, decoration: BoxDecoration(
-                                                                  color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(10),
-                                                                ),
+                                                                color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(10),
+                                                              ),
                                                                 alignment: Alignment.center,
                                                                 child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor)),
                                                               )), barrierDismissible: false);
@@ -374,9 +373,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                                 itemCount: order.timeSlots.length,
                                                 itemBuilder: (context, index) {
                                                   return SlotWidget(
-                                                    title: (index == 0 && order.selectDateSlot == 0) ? getTranslated('now', context)
-                                                        : '${DateConverter.dateToTimeOnly(order.timeSlots[index].startTime)} '
-                                                        '- ${DateConverter.dateToTimeOnly(order.timeSlots[index].endTime)}',
+                                                    title: (index == 0 && order.selectDateSlot == 0  && Provider.of<SplashProvider>(context, listen: false).isRestaurantOpenNow(context)) ? getTranslated('now', context)
+                                                        : '${DateConverter.dateToTimeOnly(order.timeSlots[index].startTime, context)} '
+                                                        '- ${DateConverter.dateToTimeOnly(order.timeSlots[index].endTime, context)}',
                                                     isSelected: order.selectTimeSlot == index,
                                                     onTap: () => order.updateTimeSlot(index),
                                                   );
@@ -385,7 +384,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                             ),
                                             SizedBox(height: Dimensions.PADDING_SIZE_LARGE),
 
-                                          if (!ResponsiveHelper.isDesktop(context))  detailsWidget(context, _kmWiseCharge, _takeAway, order, _deliveryCharge, address),
+                                            if (!ResponsiveHelper.isDesktop(context))  detailsWidget(context, _kmWiseCharge, _takeAway, order, _deliveryCharge, address),
 
 
 
@@ -427,7 +426,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
 
-                if(!ResponsiveHelper.isDesktop(context))  confirmButtonWidget(order, _takeAway, address, _kmWiseCharge, _deliveryCharge, context),
+                  if(!ResponsiveHelper.isDesktop(context))  confirmButtonWidget(order, _takeAway, address, _kmWiseCharge, _deliveryCharge, context),
 
                 ],
               );
@@ -440,147 +439,166 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Container confirmButtonWidget(OrderProvider order, bool _takeAway, LocationProvider address, bool _kmWiseCharge, double _deliveryCharge, BuildContext context) {
     return Container(
-                  width: 1170,
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.all(Dimensions.PADDING_SIZE_SMALL),
-                  child: !order.isLoading ? Builder(
-                    builder: (context) => CustomButton(btnTxt: getTranslated('confirm_order', context), onTap: () {
-                      bool _isAvailable = true;
-                      DateTime _scheduleStartDate = DateTime.now();
-                      DateTime _scheduleEndDate = DateTime.now();
-                      if(order.timeSlots == null || order.timeSlots.length == 0) {
-                        _isAvailable = false;
-                      }else {
-                        DateTime _date = order.selectDateSlot == 0 ? DateTime.now() : DateTime.now().add(Duration(days: 1));
-                        DateTime _startTime = order.timeSlots[order.selectTimeSlot].startTime;
-                        DateTime _endTime = order.timeSlots[order.selectTimeSlot].endTime;
-                        _scheduleStartDate = DateTime(_date.year, _date.month, _date.day, _startTime.hour, _startTime.minute+1);
-                        _scheduleEndDate = DateTime(_date.year, _date.month, _date.day, _endTime.hour, _endTime.minute+1);
-                        for (CartModel cart in _cartList) {
-                          if (!DateConverter.isAvailable(
-                            cart.product.availableTimeStarts, cart.product.availableTimeEnds,context,
-                            time:  _scheduleStartDate ,
-                          ) && !DateConverter.isAvailable(
-                            cart.product.availableTimeStarts, cart.product.availableTimeEnds,context,
-                            time:  _scheduleEndDate ,
-                          )) {
-                            _isAvailable = false;
-                            break;
-                          }
-                        }
-                      }
+      width: 1170,
+      alignment: Alignment.center,
+      padding: EdgeInsets.all(Dimensions.PADDING_SIZE_SMALL),
+      child: !order.isLoading ? Builder(
+        builder: (context) => CustomButton(btnTxt: getTranslated('confirm_order', context),
+            onTap: () {
+              bool _isAvailable = true;
+              DateTime _scheduleStartDate = DateTime.now();
+              DateTime _scheduleEndDate = DateTime.now();
+              if(order.timeSlots == null || order.timeSlots.length == 0) {
+                _isAvailable = false;
+              }else {
+                DateTime _date = order.selectDateSlot == 0 ? DateTime.now() : DateTime.now().add(Duration(days: 1));
+                DateTime _startTime = order.timeSlots[order.selectTimeSlot].startTime;
+                DateTime _endTime = order.timeSlots[order.selectTimeSlot].endTime;
+                _scheduleStartDate = DateTime(_date.year, _date.month, _date.day, _startTime.hour, _startTime.minute+1);
+                _scheduleEndDate = DateTime(_date.year, _date.month, _date.day, _endTime.hour, _endTime.minute+1);
+                for (CartModel cart in _cartList) {
+                  if (!DateConverter.isAvailable(cart.product.availableTimeStarts, cart.product.availableTimeEnds, context, time: _scheduleStartDate ?? null,)
+                      && !DateConverter.isAvailable(cart.product.availableTimeStarts, cart.product.availableTimeEnds, context, time: _scheduleEndDate ?? null)
+                  ) {
+                    _isAvailable = false;
+                    break;
+                  }
+                }
+              }
 
-                      if(widget.amount < Provider.of<SplashProvider>(context, listen: false).configModel.minimumOrderValue) {
-                        showCustomSnackBar('Minimum order amount is ${Provider.of<SplashProvider>(context, listen: false).configModel.minimumOrderValue}', context);
-                      }else if(!_takeAway && (address.addressList == null || address.addressList.length == 0 || order.addressIndex < 0)) {
-                        showCustomSnackBar(getTranslated('select_an_address', context), context);
-                      }else if (order.timeSlots == null || order.timeSlots.length == 0) {
-                        showCustomSnackBar(getTranslated('select_a_time', context), context);
-                      }else if (!_isAvailable) {
-                        showCustomSnackBar(getTranslated('one_or_more_products_are_not_available_for_this_selected_time', context), context);
-                      }else if (!_takeAway && _kmWiseCharge && order.distance == -1) {
-                        showCustomSnackBar(getTranslated('delivery_fee_not_set_yet', context), context);
-                      }else if (!_isCashOnDeliveryActive && !_isDigitalPaymentActive) {
-                        showCustomSnackBar(getTranslated('payment_method_is_not_activated_please_order_later', context), context,isError: true);
-                      }
-                      else {
-                        List<Cart> carts = [];
-                        for (int index = 0; index < _cartList.length; index++) {
-                          CartModel cart = _cartList[index];
-                          List<int> _addOnIdList = [];
-                          List<int> _addOnQtyList = [];
-                          cart.addOnIds.forEach((addOn) {
-                            _addOnIdList.add(addOn.id);
-                            _addOnQtyList.add(addOn.quantity);
-                          });
-                          carts.add(Cart(
-                            cart.product.id.toString(), cart.discountedPrice.toString(), '', cart.variation,
-                            cart.discountAmount, cart.quantity, cart.taxAmount, _addOnIdList, _addOnQtyList,
-                          ));
-                        }
-                        order.placeOrder(
-                          PlaceOrderBody(
-                            cart: carts, couponDiscountAmount: Provider.of<CouponProvider>(context, listen: false).discount,
-                            couponDiscountTitle: widget.couponCode.isNotEmpty ? widget.couponCode : null,
-                            deliveryAddressId: !_takeAway ? Provider.of<LocationProvider>(context, listen: false)
-                                .addressList[order.addressIndex].id : 0,
-                            orderAmount: widget.amount+_deliveryCharge, orderNote: _noteController.text ?? '', orderType: widget.orderType,
-                            paymentMethod: _isCashOnDeliveryActive ? order.paymentMethodIndex == 0 ? 'cash_on_delivery' : null : null,
-                            couponCode: widget.couponCode.isNotEmpty ? widget.couponCode : null, distance: _takeAway ? 0 : order.distance,
-                            branchId: _branches[order.branchIndex].id, deliveryDate: DateFormat('yyyy-MM-dd').format(_scheduleStartDate),
-                            deliveryTime: (order.selectTimeSlot == 0 && order.selectDateSlot == 0) ? 'now' : DateFormat('HH:mm').format(_scheduleStartDate),
-                          ), _callback,
-                        );
-                      }
-                    }),
-                  ) : Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor))),
+              if(widget.amount < Provider.of<SplashProvider>(context, listen: false).configModel.minimumOrderValue) {
+                showCustomSnackBar('Minimum order amount is ${Provider.of<SplashProvider>(context, listen: false).configModel.minimumOrderValue}', context);
+              }else if(!_takeAway && (address.addressList == null || address.addressList.length == 0 || order.addressIndex < 0)) {
+                showCustomSnackBar(getTranslated('select_an_address', context), context);
+              }else if (order.timeSlots == null || order.timeSlots.length == 0) {
+                showCustomSnackBar(getTranslated('select_a_time', context), context);
+              }else if (!_isAvailable) {
+                showCustomSnackBar(getTranslated('one_or_more_products_are_not_available_for_this_selected_time', context), context);
+              }else if (!_takeAway && _kmWiseCharge && order.distance == -1) {
+                showCustomSnackBar(getTranslated('delivery_fee_not_set_yet', context), context);
+              }else {
+                List<Cart> carts = [];
+                for (int index = 0; index < _cartList.length; index++) {
+                  CartModel cart = _cartList[index];
+                  List<int> _addOnIdList = [];
+                  List<int> _addOnQtyList = [];
+                  cart.addOnIds.forEach((addOn) {
+                    _addOnIdList.add(addOn.id);
+                    _addOnQtyList.add(addOn.quantity);
+                  });
+                  carts.add(Cart(
+                    cart.product.id.toString(), cart.discountedPrice.toString(), '', cart.variation,
+                    cart.discountAmount, cart.quantity, cart.taxAmount, _addOnIdList, _addOnQtyList,
+                  ));
+                }
+                PlaceOrderBody _placeOrderBody = PlaceOrderBody(
+                  cart: carts, couponDiscountAmount: Provider.of<CouponProvider>(context, listen: false).discount,
+                  couponDiscountTitle: widget.couponCode.isNotEmpty ? widget.couponCode : null,
+                  deliveryAddressId: !_takeAway ? Provider.of<LocationProvider>(context, listen: false)
+                      .addressList[order.addressIndex].id : 0,
+                  orderAmount: widget.amount+_deliveryCharge, orderNote: _noteController.text ?? '', orderType: widget.orderType,
+                  paymentMethod: _isCashOnDeliveryActive ? order.paymentMethodIndex == 0 ? 'cash_on_delivery' : null : null,
+                  couponCode: widget.couponCode.isNotEmpty ? widget.couponCode : null, distance: _takeAway ? 0 : order.distance,
+                  branchId: _branches[order.branchIndex].id,
+                  deliveryDate: DateFormat('yyyy-MM-dd').format(_scheduleStartDate),
+                  deliveryTime: (order.selectTimeSlot == 0 && order.selectDateSlot == 0) ? 'now' : DateFormat('HH:mm').format(_scheduleStartDate),
                 );
+
+                if(_isCashOnDeliveryActive && Provider.of<OrderProvider>(context, listen: false).paymentMethodIndex == 0) {
+                  order.placeOrder(_placeOrderBody, _callback);
+                }
+                else {
+                  String hostname = html.window.location.hostname;
+                  String protocol = html.window.location.protocol;
+                  String port = html.window.location.port;
+                  final String _placeOrder =  convert.base64Url.encode(convert.utf8.encode(convert.jsonEncode(_placeOrderBody.toJson())));
+                  String _url = "customer_id=${Provider.of<ProfileProvider>(context, listen: false).userInfoModel.id}"
+                      "&&callback=${AppConstants.BASE_URL}${Routes.ORDER_SUCCESS_SCREEN}&&order_amount=${widget.amount}";
+
+                  String _webUrl = "customer_id=${Provider.of<ProfileProvider>(context, listen: false).userInfoModel.id}"
+                      "&&callback=$protocol//$hostname:$port${Routes.ORDER_WEB_PAYMENT}&&order_amount=${widget.amount}&&status=";
+
+                  String _tokenUrl = convert.base64Encode(convert.utf8.encode(ResponsiveHelper.isWeb() ? _webUrl : _url));
+                  String selectedUrl = '${AppConstants.BASE_URL}/payment-mobile?token=$_tokenUrl';
+                  if(ResponsiveHelper.isWeb()) {
+                    order.clearPlaceOrder().then((_) {
+                      order.setPlaceOrder(_placeOrder).then((value) => html.window.open(selectedUrl,"_self"));
+                    });
+
+                  } else{
+                    Navigator.pushReplacementNamed(context, Routes.getPaymentRoute(page: 'checkout',  selectAddress: selectedUrl, placeOrderBody: _placeOrderBody));
+                  }
+                }
+              }}),
+      ) : Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor))),
+    );
   }
 
 
   Column detailsWidget(BuildContext context, bool _kmWiseCharge, bool _takeAway, OrderProvider order, double _deliveryCharge, LocationProvider address) {
     return Column(
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: Dimensions.PADDING_SIZE_SMALL),
-                                  child: Text(getTranslated('payment_method', context), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
-                                ),
-                                _isCashOnDeliveryActive ? CustomCheckBox(title: getTranslated('cash_on_delivery', context), index: 0) : SizedBox(),
-                                _isDigitalPaymentActive ? CustomCheckBox(title: getTranslated('digital_payment', context), index: _isCashOnDeliveryActive ? 1 : 0)
-                                    : SizedBox(),
-                                Padding(
-                                  padding: EdgeInsets.all(Dimensions.PADDING_SIZE_SMALL),
-                                  child: CustomTextField(
-                                    controller: _noteController,
-                                    hintText: getTranslated('additional_note', context),
-                                    maxLines: 5,
-                                    inputType: TextInputType.multiline,
-                                    inputAction: TextInputAction.newline,
-                                    capitalization: TextCapitalization.sentences,
-                                  ),
-                                ),
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: Dimensions.PADDING_SIZE_SMALL),
+          child: Text(getTranslated('payment_method', context), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
+        ),
+        _isCashOnDeliveryActive ? CustomCheckBox(title: getTranslated('cash_on_delivery', context), index: 0) : SizedBox(),
+        _isDigitalPaymentActive ? CustomCheckBox(title: getTranslated('digital_payment', context), index: _isCashOnDeliveryActive ? 1 : 0)
+            : SizedBox(),
+        Padding(
+          padding: EdgeInsets.all(Dimensions.PADDING_SIZE_SMALL),
+          child: CustomTextField(
+            controller: _noteController,
+            hintText: getTranslated('additional_note', context),
+            maxLines: 5,
+            inputType: TextInputType.multiline,
+            inputAction: TextInputAction.newline,
+            capitalization: TextCapitalization.sentences,
+          ),
+        ),
 
-                                _kmWiseCharge ? Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: Dimensions.PADDING_SIZE_SMALL),
-                                  child: Column(children: [
-                                    SizedBox(height: Dimensions.PADDING_SIZE_LARGE),
-                                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                      Text(getTranslated('subtotal', context), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
-                                      Text(PriceConverter.convertPrice(context, widget.amount), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
-                                    ]),
-                                    SizedBox(height: 10),
+        _kmWiseCharge ? Padding(
+          padding: EdgeInsets.symmetric(horizontal: Dimensions.PADDING_SIZE_SMALL),
+          child: Column(children: [
+            SizedBox(height: Dimensions.PADDING_SIZE_LARGE),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(getTranslated('subtotal', context), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
+              Text(PriceConverter.convertPrice(context, widget.amount), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
+            ]),
+            SizedBox(height: 10),
 
-                                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                      Text(
-                                        getTranslated('delivery_fee', context),
-                                        style: rubikRegular.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE),
-                                      ),
-                                      Text(
-                                        (_takeAway || order.distance != -1) ? '(+) ${PriceConverter.convertPrice(context, _takeAway ? 0 : _deliveryCharge)}'
-                                            : getTranslated('not_found', context),
-                                        style: rubikRegular.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE),
-                                      ),
-                                    ]),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(
+                getTranslated('delivery_fee', context),
+                style: rubikRegular.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE),
+              ),
+              Text(
+                (_takeAway || order.distance != -1) ? '(+) ${PriceConverter.convertPrice(context, _takeAway ? 0 : _deliveryCharge)}'
+                    : getTranslated('not_found', context),
+                style: rubikRegular.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE),
+              ),
+            ]),
 
-                                    Padding(
-                                      padding: EdgeInsets.symmetric(vertical: Dimensions.PADDING_SIZE_SMALL),
-                                      child: CustomDivider(),
-                                    ),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: Dimensions.PADDING_SIZE_SMALL),
+              child: CustomDivider(),
+            ),
 
-                                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                      Text(getTranslated('total_amount', context), style: rubikMedium.copyWith(
-                                        fontSize: Dimensions.FONT_SIZE_EXTRA_LARGE, color: Theme.of(context).primaryColor,
-                                      )),
-                                      Text(
-                                        PriceConverter.convertPrice(context, widget.amount+_deliveryCharge),
-                                        style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_EXTRA_LARGE, color: Theme.of(context).primaryColor),
-                                      ),
-                                    ]),
-                                  ]),
-                                ) : SizedBox(),
-                                if(ResponsiveHelper.isDesktop(context))  confirmButtonWidget(order, _takeAway, address, _kmWiseCharge, _deliveryCharge, context),
-                              ],
-                            );
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(getTranslated('total_amount', context), style: rubikMedium.copyWith(
+                fontSize: Dimensions.FONT_SIZE_EXTRA_LARGE, color: Theme.of(context).primaryColor,
+              )),
+              Text(
+                PriceConverter.convertPrice(context, widget.amount+_deliveryCharge),
+                style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_EXTRA_LARGE, color: Theme.of(context).primaryColor),
+              ),
+            ]),
+          ]),
+        ) : SizedBox(),
+        if(ResponsiveHelper.isDesktop(context))  confirmButtonWidget(order, _takeAway, address, _kmWiseCharge, _deliveryCharge, context),
+      ],
+    );
+
   }
 
 
@@ -593,21 +611,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       Provider.of<OrderProvider>(context, listen: false).stopLoader();
       if(_isCashOnDeliveryActive && Provider.of<OrderProvider>(context, listen: false).paymentMethodIndex == 0) {
         Navigator.pushReplacementNamed(context, '${Routes.ORDER_SUCCESS_SCREEN}/$orderID/success');
-      }else {
-       if(ResponsiveHelper.isWeb()) {
-         String hostname = html.window.location.hostname;
-         String protocol = html.window.location.protocol;
-         String selectedUrl = '${AppConstants.BASE_URL}/payment-mobile?order_id=$orderID&&customer_id=${Provider.of<ProfileProvider>(context, listen: false).userInfoModel.id}'
-             '&&callback=$protocol//$hostname${Routes.ORDER_SUCCESS_SCREEN}/$orderID';
-         html.window.open(selectedUrl,"_self");
-       } else{
-         Navigator.pushReplacementNamed(context, Routes.getPaymentRoute('checkout', orderID, Provider.of<ProfileProvider>(context, listen: false).userInfoModel.id));
-       }
+      }
+      else {
+        Navigator.pushReplacementNamed(context, '${Routes.ORDER_SUCCESS_SCREEN}/$orderID/success');
       }
     }else {
       showCustomSnackBar(message, context);
     }
   }
+
 
   void _setMarkers(int selectedIndex) async {
     BitmapDescriptor _bitmapDescriptor;
@@ -646,17 +658,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return (await fi.image.toByteData(format: ImageByteFormat.png)).buffer.asUint8List();
   }
 
-  // void _checkPermission(BuildContext context, String navigateTo) async {
-  //   LocationPermission permission = await Geolocator.checkPermission();
-  //   if(permission == LocationPermission.denied) {
-  //     permission = await Geolocator.requestPermission();
-  //   }
-  //   if(permission == LocationPermission.denied) {
-  //     showCustomSnackBar(getTranslated('you_have_to_allow', context), context);
-  //   }else if(permission == LocationPermission.deniedForever) {
-  //     showDialog(context: context, barrierDismissible: false, builder: (context) => PermissionDialog());
-  //   }else {
-  //     Navigator.pushNamed(context, navigateTo);
-  //   }
-  // }
+  void _checkPermission(BuildContext context, String navigateTo) async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if(permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if(permission == LocationPermission.denied) {
+      showCustomSnackBar(getTranslated('you_have_to_allow', context), context);
+    }else if(permission == LocationPermission.deniedForever) {
+      showDialog(context: context, barrierDismissible: false, builder: (context) => PermissionDialog());
+    }else {
+      Navigator.pushNamed(context, navigateTo);
+    }
+  }
 }

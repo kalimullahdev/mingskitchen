@@ -11,8 +11,7 @@ class CategoryRepo {
 
   Future<ApiResponse> getCategoryList(String languageCode) async {
     try {
-      final response = await dioClient.get(
-        AppConstants.CATEGORY_URI,
+      final response = await dioClient.get(AppConstants.CATEGORY_URI,
         options: Options(headers: {'X-localization': languageCode}),
       );
       return ApiResponse.withSuccess(response);
@@ -21,11 +20,9 @@ class CategoryRepo {
     }
   }
 
-  Future<ApiResponse> getSubCategoryList(
-      String parentID, String languageCode) async {
+  Future<ApiResponse> getSubCategoryList(String parentID, String languageCode) async {
     try {
-      final response = await dioClient.get(
-        '${AppConstants.SUB_CATEGORY_URI}$parentID',
+      final response = await dioClient.get('${AppConstants.SUB_CATEGORY_URI}$parentID',
         options: Options(headers: {'X-localization': languageCode}),
       );
       return ApiResponse.withSuccess(response);
@@ -34,11 +31,9 @@ class CategoryRepo {
     }
   }
 
-  Future<ApiResponse> getCategoryProductList(
-      String categoryID, String languageCode) async {
+  Future<ApiResponse> getCategoryProductList(String categoryID, String languageCode) async {
     try {
-      final response = await dioClient.get(
-        '${AppConstants.CATEGORY_PRODUCT_URI}$categoryID',
+      final response = await dioClient.get('${AppConstants.CATEGORY_PRODUCT_URI}$categoryID',
         options: Options(headers: {'X-localization': languageCode}),
       );
       return ApiResponse.withSuccess(response);

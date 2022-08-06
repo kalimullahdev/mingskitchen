@@ -1,18 +1,45 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_restaurant/main.dart';
 import 'package:flutter_restaurant/utill/app_constants.dart';
+import 'package:flutter_restaurant/view/screens/order/order_details_screen.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
 
 class NotificationHelper {
+  static bool isAppLifeCycleResume = false;
+  static bool isMessageNotify = false;
 
   static Future<void> initialize(FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin) async {
-    var androidInitialize = const AndroidInitializationSettings('notification_icon');
-    var iOSInitialize = const IOSInitializationSettings();
-    var initializationsSettings = InitializationSettings(android: androidInitialize, iOS: iOSInitialize);
-    flutterLocalNotificationsPlugin.initialize(initializationsSettings);
+    var androidInitialize = new AndroidInitializationSettings('notification_icon');
+    var iOSInitialize = new IOSInitializationSettings();
+    var initializationsSettings = new InitializationSettings(android: androidInitialize, iOS: iOSInitialize);
+    flutterLocalNotificationsPlugin.initialize(initializationsSettings, onSelectNotification: (String payload) async {
+      try{
+        if(payload != null && payload.isNotEmpty) {
+          MyApp.navigatorKey.currentState.push(
+              MaterialPageRoute(builder: (context) => OrderDetailsScreen(orderModel: null, orderId: int.parse(payload))));
+        }
+      }catch (e) {}
+      return;
+    });
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      showNotification(message, flutterLocalNotificationsPlugin, false);
+      isMessageNotify = true;
+    });
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print("onOpenApp: message:  ${message.notification.title}/body: ${message.notification.body}/orderId: ${message.notification.titleLocKey}");
+      try{
+        if(message.notification.titleLocKey != null && message.notification.titleLocKey.isNotEmpty) {
+          MyApp.navigatorKey.currentState.push(
+              MaterialPageRoute(builder: (context) => OrderDetailsScreen(orderModel: null, orderId: int.parse(message.notification.titleLocKey))));
+        }
+      }catch (e) {}
+    });
+
   }
 
   static Future<void> showNotification(RemoteMessage message, FlutterLocalNotificationsPlugin fln, bool data) async {
@@ -21,8 +48,9 @@ class NotificationHelper {
     String _orderID;
     String _image;
     if(data) {
+      // log('is Data : ');
       _title = message.data['title'];
-      _body = message.data['body'];
+      _body = message.data['description'];
       _orderID = message.data['order_id'];
       _image = (message.data['image'] != null && message.data['image'].isNotEmpty)
           ? message.data['image'].startsWith('http') ? message.data['image']
@@ -55,8 +83,7 @@ class NotificationHelper {
 
   static Future<void> showTextNotification(String title, String body, String orderID, FlutterLocalNotificationsPlugin fln) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-
-      '6valley_delivery', '6valley_delivery name', playSound: true,
+      'efood', 'efood', playSound: true,
       importance: Importance.max, priority: Priority.max, sound: RawResourceAndroidNotificationSound('notification'),
     );
     const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
@@ -69,9 +96,9 @@ class NotificationHelper {
       contentTitle: title, htmlFormatContentTitle: true,
     );
     AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      '6valley_delivery channel id', '6valley_delivery name', importance: Importance.max,
+      'efood', 'efood', importance: Importance.max,
       styleInformation: bigTextStyleInformation, priority: Priority.max, playSound: true,
-      sound: const RawResourceAndroidNotificationSound('notification'),
+      sound: RawResourceAndroidNotificationSound('notification'),
     );
     NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
     await fln.show(0, title, body, platformChannelSpecifics, payload: orderID);
@@ -86,10 +113,10 @@ class NotificationHelper {
       summaryText: body, htmlFormatSummaryText: true,
     );
     final AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      '6valley_delivery', '6valley_delivery name',
+      'efood', 'efood',
       largeIcon: FilePathAndroidBitmap(largeIconPath), priority: Priority.max, playSound: true,
       styleInformation: bigPictureStyleInformation, importance: Importance.max,
-      sound: const RawResourceAndroidNotificationSound('notification'),
+      sound: RawResourceAndroidNotificationSound('notification'),
     );
     final NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
     await fln.show(0, title, body, platformChannelSpecifics, payload: orderID);
@@ -98,20 +125,15 @@ class NotificationHelper {
   static Future<String> _downloadAndSaveFile(String url, String fileName) async {
     final Directory directory = await getApplicationDocumentsDirectory();
     final String filePath = '${directory.path}/$fileName';
-    final http.Response response = await http.get(Uri.parse(url));
+    final Response response = await Dio().get(url, options: Options(responseType: ResponseType.bytes));
     final File file = File(filePath);
-    await file.writeAsBytes(response.bodyBytes);
+    await file.writeAsBytes(response.data);
     return filePath;
   }
 
 }
 
 Future<dynamic> myBackgroundMessageHandler(RemoteMessage message) async {
-  debugPrint("onBackground: ${message.notification.title}/${message.notification.body}/${message.notification.titleLocKey}");
-  // var androidInitialize = const AndroidInitializationSettings('notification_icon');
-  // var iOSInitialize = const IOSInitializationSettings();
-  // var initializationsSettings = InitializationSettings(android: androidInitialize, iOS: iOSInitialize);
-  // FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  // flutterLocalNotificationsPlugin.initialize(initializationsSettings);
-  // NotificationHelper.showNotification(message, flutterLocalNotificationsPlugin, true);
+  print("onBackground: ${message.notification.title}/${message.notification.body}/${message.notification.titleLocKey}");
+
 }

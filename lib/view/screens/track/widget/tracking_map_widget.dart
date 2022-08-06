@@ -80,8 +80,8 @@ class _TrackingMapWidgetState extends State<TrackingMapWidget> {
               await Provider.of<OrderProvider>(context, listen: false).getDeliveryManData(widget.orderID, context);
               String url ='https://www.google.com/maps/dir/?api=1&origin=${widget.deliveryManModel.latitude},${widget.deliveryManModel.longitude}'
                   '&destination=${_addressLatLng.latitude},${_addressLatLng.longitude}&mode=d';
-              if (await canLaunch(url)) {
-                await launch(url);
+              if (await canLaunchUrl(Uri.parse(url))) {
+                await launchUrl(Uri.parse(url));
               } else {
                 throw 'Could not launch $url';
               }

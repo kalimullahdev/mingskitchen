@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_restaurant/data/model/response/base/api_response.dart';
 import 'package:flutter_restaurant/data/model/response/config_model.dart';
 import 'package:flutter_restaurant/data/repository/splash_repo.dart';
+import 'package:flutter_restaurant/helper/date_converter.dart';
 import 'package:flutter_restaurant/view/base/custom_snackbar.dart';
-import 'package:intl/intl.dart';
 
 class SplashProvider extends ChangeNotifier {
   final SplashRepo splashRepo;
@@ -18,11 +18,10 @@ class SplashProvider extends ChangeNotifier {
   BaseUrls get baseUrls => _baseUrls;
   DateTime get currentTime => _currentTime;
 
-  Future<bool> initConfig(GlobalKey<ScaffoldMessengerState> globalKey) async {
+  Future<bool> initConfig(BuildContext context) async {
     ApiResponse apiResponse = await splashRepo.getConfig();
     bool isSuccess;
-    if (apiResponse.response != null &&
-        apiResponse.response.statusCode == 200) {
+    if (apiResponse.response != null && apiResponse.response.statusCode == 200) {
       _configModel = ConfigModel.fromJson(apiResponse.response.data);
       _baseUrls = ConfigModel.fromJson(apiResponse.response.data).baseUrls;
       isSuccess = true;
@@ -30,13 +29,13 @@ class SplashProvider extends ChangeNotifier {
     } else {
       isSuccess = false;
       String _error;
-      if (apiResponse.error is String) {
+      if(apiResponse.error is String) {
         _error = apiResponse.error;
-      } else {
+      }else {
         _error = apiResponse.error.errors[0].message;
       }
       print(_error);
-      showCustomSnackBar(_error, globalKey.currentContext);
+      showCustomSnackBar(_error, context);
     }
     return isSuccess;
   }
@@ -49,26 +48,41 @@ class SplashProvider extends ChangeNotifier {
     return splashRepo.removeSharedData();
   }
 
-// Todo://sdfdsf
-
-  bool isRestaurantClosed() {
-    DateTime _open = _configModel != null
-        ? DateFormat('hh:mm').parse(_configModel.restaurantOpenTime)
-        : DateTime.now();
-    DateTime _close = _configModel != null
-        ? DateFormat('hh:mm').parse(_configModel.restaurantCloseTime)
-        : DateTime.now();
-    DateTime _openTime = DateTime(_currentTime.year, _currentTime.month,
-        _currentTime.day, _open.hour, _open.minute);
-    DateTime _closeTime = DateTime(_currentTime.year, _currentTime.month,
-        _currentTime.day, _close.hour, _close.minute);
-    if (_closeTime.isBefore(_openTime)) {
-      _closeTime = _closeTime.add(Duration(days: 1));
+  bool isRestaurantClosed(bool today) {
+    DateTime _date = DateTime.now();
+    if(!today) {
+      _date = _date.add(Duration(days: 1));
     }
-    if (_currentTime.isAfter(_openTime) && _currentTime.isBefore(_closeTime)) {
-      return false;
-    } else {
-      return true;
+    int _weekday = _date.weekday;
+    if(_weekday == 7) {
+      _weekday = 0;
     }
+    for(int index = 0; index <  _configModel.restaurantScheduleTime.length; index++) {
+      if(_weekday.toString() ==  _configModel.restaurantScheduleTime[index].day) {
+        return false;
+      }
+    }
+    return true;
   }
+
+  bool isRestaurantOpenNow(BuildContext context) {
+    if(isRestaurantClosed(true)) {
+      return false;
+    }
+    int _weekday = DateTime.now().weekday;
+    if(_weekday == 7) {
+      _weekday = 0;
+    }
+    for(int index = 0; index <  _configModel.restaurantScheduleTime.length; index++) {
+      if(_weekday.toString() ==  _configModel.restaurantScheduleTime[index].day && DateConverter.isAvailable(
+            _configModel.restaurantScheduleTime[index].openingTime,
+            _configModel.restaurantScheduleTime[index].closingTime,
+            context,
+          )) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 }

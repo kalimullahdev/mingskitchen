@@ -25,14 +25,25 @@ class CartBottomSheetWeb extends StatelessWidget {
   final Function callback;
   final CartModel cart;
   final int cartIndex;
-  CartBottomSheetWeb({@required this.product, this.fromSetMenu = false, this.callback, this.cart, this.cartIndex});
+  final bool fromCart;
+  final bool isCart;
+
+  CartBottomSheetWeb({
+    @required this.product,
+    this.fromSetMenu = false,
+    this.callback,
+    this.cart,
+    this.cartIndex,
+    this.fromCart = false,
+    this.isCart = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     bool isExistInCart = false;
-    bool fromCart = cart != null;
-    Provider.of<ProductProvider>(context, listen: false).initData(product, cart);
+    // bool fromCar = cart != null;
+    Provider.of<ProductProvider>(context, listen: false).initData(product, cart, context);
     Variation _variation = Variation();
 
     return Stack(
@@ -119,10 +130,9 @@ class CartBottomSheetWeb extends StatelessWidget {
                     _addOnIdList,
                     product,
                   );
-                  isExistInCart = _cartProvider.isExistInCart(_cartModel, fromCart, cartIndex);
-                  double priceWithQuantity = isExistInCart ? priceWithDiscount *  _cartProvider.cartList[_cartProvider.getCartProductIndex(_cartModel)].quantity : priceWithDiscount * productProvider.quantity;
+                  isExistInCart = _cartProvider.isExistInCart(product.id, variationType ,fromCart, cartIndex) == -1 ? false : true;
+                  double priceWithQuantity = priceWithDiscount *  productProvider.quantity;
                   double priceWithAddons = priceWithQuantity + addonsCost;
-
 
                   return SingleChildScrollView(
                     child: Padding(
@@ -230,50 +240,27 @@ class CartBottomSheetWeb extends StatelessWidget {
                               Row(children: [
                                 Text(getTranslated('quantity', context), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
                                 Expanded(child: SizedBox()),
-                                Container(
-                                  decoration: BoxDecoration(color: ColorResources.getBackgroundColor(context), borderRadius: BorderRadius.circular(5)),
-                                  child: Row(children: [
-                                    InkWell(
-                                      onTap: () {
-                                        if(isExistInCart && _cartProvider.cartList[_cartProvider.getCartProductIndex(_cartModel)].quantity > 1) {
-                                          _cartProvider.setQuantity( productIndex: _cartProvider.getCartProductIndex(_cartModel), cart: _cartModel, fromProductView: true, isIncrement: false);
-                                        }else {
-                                          if (productProvider.quantity > 1) {
-                                            productProvider.setQuantity(false);
-                                          }
-                                        }
-
-                                      },
-                                      child: Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: Dimensions.PADDING_SIZE_SMALL, vertical: Dimensions.PADDING_SIZE_EXTRA_SMALL),
-                                        child: Icon(Icons.remove, size: 20),
-                                      ),
-                                    ),
-                                    Text(isExistInCart ? _cartProvider.cartList[_cartProvider.getCartProductIndex(_cartModel)].quantity.toString() : productProvider.quantity.toString(), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_EXTRA_LARGE)),
-                                    InkWell(
-                                      onTap: () => isExistInCart ? _cartProvider.setQuantity(productIndex: _cartProvider.getCartProductIndex(_cartModel), cart: _cartModel, fromProductView: true, isIncrement: true) :  productProvider.setQuantity(true),
-                                      child: Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: Dimensions.PADDING_SIZE_SMALL, vertical: Dimensions.PADDING_SIZE_EXTRA_SMALL),
-                                        child: Icon(Icons.add, size: 20),
-                                      ),
-                                    ),
-                                  ]),
-                                ),
+                                _quantityButton(context, isExistInCart, _cartProvider, _cartModel, productProvider),
                               ]),
                             ]),
                           ),
                         ]),
-
-
+                        
                         SizedBox(height: Dimensions.PADDING_SIZE_LARGE),
-                        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(getTranslated('description', context), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
-                          SizedBox(height: Dimensions.PADDING_SIZE_EXTRA_SMALL),
-                          Text(product.description ?? '', style: rubikRegular),
-                          SizedBox(height: Dimensions.PADDING_SIZE_LARGE),
-                        ]),
+                       
+                       ResponsiveHelper.isDesktop(context) ?
+                       Builder(
+                         builder: (context) {
+                           print('=============des===============>${product.description}');
+                           return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                             Text(getTranslated('description', context), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
+                             SizedBox(height: Dimensions.PADDING_SIZE_EXTRA_SMALL),
+                             Text(product.description ?? '', style: rubikRegular),
+
+                             SizedBox(height: Dimensions.PADDING_SIZE_LARGE),
+                           ]);
+                         }
+                       ) : SizedBox(),
 
                         // Variation
                         ListView.builder(
@@ -297,7 +284,7 @@ class CartBottomSheetWeb extends StatelessWidget {
                                 itemBuilder: (context, i) {
                                   return InkWell(
                                     onTap: () {
-                                      productProvider.setCartVariationIndex(index, i);
+                                      productProvider.setCartVariationIndex(index, i, product, variationType, context, );
                                     },
                                     child: Container(
                                       alignment: Alignment.center,
@@ -307,9 +294,6 @@ class CartBottomSheetWeb extends StatelessWidget {
                                             ? ColorResources.BACKGROUND_COLOR
                                             : Theme.of(context).primaryColor,
                                         borderRadius: BorderRadius.circular(5),
-                                        // border: productProvider.variationIndex[index] != i
-                                        //     ? Border.all(color: ColorResources.BORDER_COLOR, width: 2)
-                                        //     : null,
                                       ),
                                       child: Text(
                                         product.choiceOptions[index].options[i].trim(),
@@ -334,25 +318,29 @@ class CartBottomSheetWeb extends StatelessWidget {
 
 
                         // Addons
-                        product.addOns.length > 0
-                            ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        product.addOns.length > 0 ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(getTranslated('addons', context), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
                           SizedBox(height: Dimensions.PADDING_SIZE_EXTRA_SMALL),
                           GridView.builder(
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 4, crossAxisSpacing: 20, mainAxisSpacing: 10, childAspectRatio: (1 / 1.1)),
+                              crossAxisCount: 4,
+                              crossAxisSpacing: 20,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: (1 / 1.1),
+                            ),
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
                             itemCount: product.addOns.length,
                             itemBuilder: (context, index) {
                               return InkWell(
-                                onTap: isExistInCart ? null : () {
+                                onTap: () {
                                   if (!productProvider.addOnActiveList[index]) {
                                     productProvider.addAddOn(true, index);
                                   } else if (productProvider.addOnQtyList[index] == 1) {
                                     productProvider.addAddOn(false, index);
                                   }
                                 },
+
                                 child: Container(
                                   alignment: Alignment.center,
                                   margin: EdgeInsets.only(bottom: productProvider.addOnActiveList[index] ? 2 : 20),
@@ -394,8 +382,7 @@ class CartBottomSheetWeb extends StatelessWidget {
                                                 fontSize: Dimensions.FONT_SIZE_EXTRA_SMALL),
                                           ),
                                         ])),
-                                    productProvider.addOnActiveList[index]
-                                        ? Container(
+                                    productProvider.addOnActiveList[index] ? Container(
                                       height: 25,
                                       decoration:
                                       BoxDecoration(borderRadius: BorderRadius.circular(5), color: Theme.of(context).cardColor),
@@ -403,11 +390,7 @@ class CartBottomSheetWeb extends StatelessWidget {
                                         Expanded(
                                           child: InkWell(
                                             onTap: () {
-                                              if(isExistInCart) {
-                                                // Navigator.of(context).pop();
-                                                // showCustomSnackBar(getTranslated('already_added_in_cart', context), context);
-                                              }
-                                              else if (productProvider.addOnQtyList[index] > 1) {
+                                             if (productProvider.addOnQtyList[index] > 1) {
                                                 productProvider.setAddOnQuantity(false, index);
                                               } else {
                                                 productProvider.addAddOn(false, index);
@@ -420,14 +403,8 @@ class CartBottomSheetWeb extends StatelessWidget {
                                             style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL)),
                                         Expanded(
                                           child: InkWell(
-                                            onTap: () {
-                                              if(isExistInCart) {
-                                                // Navigator.of(context).pop();
-                                                // showCustomSnackBar(getTranslated('already_added_in_cart', context), context);
-                                              }else{
-                                                productProvider.setAddOnQuantity(true, index);
-                                              }
-                                            },                                            child: Center(child: Icon(Icons.add, size: 15)),
+                                            onTap: () => productProvider.setAddOnQuantity(true, index),
+                                            child: Center(child: Icon(Icons.add, size: 15)),
                                           ),
                                         ),
                                       ]),
@@ -453,97 +430,10 @@ class CartBottomSheetWeb extends StatelessWidget {
                         ]),
                         SizedBox(height: Dimensions.PADDING_SIZE_LARGE),
                         //Add to cart Button
-                        ResponsiveHelper.isDesktop(context)
-                            ? SizedBox(
+                        ResponsiveHelper.isDesktop(context) ? SizedBox(
                           width: size.width / 2.0,
-                          child: Column(children: [
-                            _isAvailable ? SizedBox() : Container(
-                              alignment: Alignment.center,
-                              padding: EdgeInsets.all(Dimensions.PADDING_SIZE_SMALL),
-                              margin: EdgeInsets.only(bottom: Dimensions.PADDING_SIZE_SMALL),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                              ),
-                              child: Column(children: [
-                                Text(getTranslated('not_available_now', context),
-                                    style: rubikMedium.copyWith(
-                                      color: Theme.of(context).primaryColor,
-                                      fontSize: Dimensions.FONT_SIZE_LARGE,
-                                    )),
-                                Text(
-                                  '${getTranslated('available_will_be', context)} ${DateConverter.convertTimeToTime(product.availableTimeStarts)} '
-                                      '- ${DateConverter.convertTimeToTime(product.availableTimeEnds)}',
-                                  style: rubikRegular,
-                                ),
-                              ]),
-                            ),
-
-                            CustomButton(
-                              btnTxt: getTranslated(
-                                  isExistInCart
-                                      ? 'already_added_in_cart'
-                                      : fromCart
-                                      ? 'update_in_cart'
-                                      : 'add_to_cart',
-                                  context),
-                              backgroundColor: Theme.of(context).primaryColor,
-                              onTap: (!isExistInCart)
-                                  ? () {
-                                if (!isExistInCart) {
-                                  Navigator.pop(context);
-                                  Provider.of<CartProvider>(context, listen: false).addToCart(_cartModel, cartIndex);
-                                  callback(_cartModel);
-                                }
-                              }
-                                  : null,
-                            )
-                          ]),
-                        )
-                            :
-                        //is mobile (Add to Cart)
-                        Column(children: [
-                          _isAvailable ? SizedBox() : Container(
-                            alignment: Alignment.center,
-                            padding: EdgeInsets.all(Dimensions.PADDING_SIZE_SMALL),
-                            margin: EdgeInsets.only(bottom: Dimensions.PADDING_SIZE_SMALL),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: Theme.of(context).primaryColor.withOpacity(0.1),
-                            ),
-                            child: Column(children: [
-                              Text(getTranslated('not_available_now', context),
-                                  style: rubikMedium.copyWith(
-                                    color: Theme.of(context).primaryColor,
-                                    fontSize: Dimensions.FONT_SIZE_LARGE,
-                                  )),
-                              Text(
-                                '${getTranslated('available_will_be', context)} ${DateConverter.convertTimeToTime(product.availableTimeStarts)} '
-                                    '- ${DateConverter.convertTimeToTime(product.availableTimeEnds)}',
-                                style: rubikRegular,
-                              ),
-                            ]),
-                          ),
-                          CustomButton(
-                            btnTxt: getTranslated(
-                                isExistInCart
-                                    ? 'already_added_in_cart'
-                                    : fromCart
-                                    ? 'update_in_cart'
-                                    : 'add_to_cart',
-                                context),
-                            backgroundColor: Theme.of(context).primaryColor,
-                            onTap: (!isExistInCart)
-                                ? () {
-                              if (!isExistInCart) {
-                                Navigator.pop(context);
-                                Provider.of<CartProvider>(context, listen: false).addToCart(_cartModel, cartIndex);
-                                callback(_cartModel);
-                              }
-                            }
-                                : null,
-                          ),
-                        ]),
+                          child: _cartButton(_isAvailable, context, isExistInCart, _cartModel),
+                        ) : _cartButton(_isAvailable, context, isExistInCart, _cartModel),
                       ]),
                     ),
                   );
@@ -552,14 +442,96 @@ class CartBottomSheetWeb extends StatelessWidget {
             );
           }
         ),
-        ResponsiveHelper.isMobile(context)
-            ? SizedBox()
-            : Positioned(
+        ResponsiveHelper.isMobile(context) ? SizedBox() : Positioned(
           right: 10,
           top: 5,
           child: InkWell(onTap: () => Navigator.pop(context), child: Icon(Icons.close)),
         ),
       ],
     );
+  }
+
+
+
+  Column _productDiscription(BuildContext context) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(getTranslated('description', context), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE)),
+      SizedBox(height: Dimensions.PADDING_SIZE_EXTRA_SMALL),
+      Text(product.description ?? '', style: rubikRegular),
+      SizedBox(height: Dimensions.PADDING_SIZE_LARGE),
+    ]);
+  }
+
+  Container _quantityButton(BuildContext context, bool isExistInCart, CartProvider _cartProvider, CartModel _cartModel, ProductProvider productProvider) {
+    return Container(
+      decoration: BoxDecoration(color: ColorResources.getBackgroundColor(context), borderRadius: BorderRadius.circular(5)),
+      child: Row(children: [
+        InkWell(
+          onTap: () => productProvider.quantity > 1 ?  productProvider.setQuantity(false) : null,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: Dimensions.PADDING_SIZE_SMALL, vertical: Dimensions.PADDING_SIZE_EXTRA_SMALL),
+            child: Icon(Icons.remove, size: 20),
+          ),
+        ),
+        Text(productProvider.quantity.toString(), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_EXTRA_LARGE)),
+
+        InkWell(
+          onTap: () => productProvider.setQuantity(true),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: Dimensions.PADDING_SIZE_SMALL, vertical: Dimensions.PADDING_SIZE_EXTRA_SMALL),
+            child: Icon(Icons.add, size: 20),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Column _cartButton(bool _isAvailable, BuildContext context, bool isExistInCart, CartModel _cartModel) {
+    return Column(children: [
+      _isAvailable ? SizedBox() :
+      Container(
+        alignment: Alignment.center,
+        padding: EdgeInsets.all(Dimensions.PADDING_SIZE_SMALL),
+        margin: EdgeInsets.only(bottom: Dimensions.PADDING_SIZE_SMALL),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Theme.of(context).primaryColor.withOpacity(0.1),
+        ),
+        child: Column(children: [
+          Text(getTranslated('not_available_now', context),
+              style: rubikMedium.copyWith(
+                color: Theme.of(context).primaryColor,
+                fontSize: Dimensions.FONT_SIZE_LARGE,
+              )),
+          Text(
+            '${getTranslated('available_will_be', context)} ${DateConverter.convertTimeToTime(product.availableTimeStarts, context)} '
+                '- ${DateConverter.convertTimeToTime(product.availableTimeEnds, context)}',
+            style: rubikRegular,
+          ),
+        ]),
+      ),
+
+      CustomButton(
+          btnTxt: getTranslated(
+            isCart
+                ? 'update_in_cart'
+                : isExistInCart
+                ? 'update_in_cart'
+                : 'add_to_cart', context,
+          ),
+          backgroundColor: Theme.of(context).primaryColor,
+          onTap: () {
+            Navigator.pop(context);
+            if(isExistInCart) {
+              Provider.of<CartProvider>(context, listen: false).removeFromCart(
+                cartIndex ?? Provider.of<CartProvider>(context, listen: false).getCartProductIndex(_cartModel),
+              );
+            }
+            Provider.of<CartProvider>(context, listen: false).addToCart(_cartModel, cartIndex ?? Provider.of<CartProvider>(context, listen: false).getCartProductIndex(_cartModel));
+          }
+      ),
+    ]);
   }
 }

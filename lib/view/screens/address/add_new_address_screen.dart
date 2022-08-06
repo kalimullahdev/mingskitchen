@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_restaurant/data/model/response/address_model.dart';
 import 'package:flutter_restaurant/data/model/response/config_model.dart';
@@ -284,6 +286,7 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                   compassEnabled: false,
                   indoorViewEnabled: true,
                   mapToolbarEnabled: false,
+                  minMaxZoomPreference: MinMaxZoomPreference(0, 16),
                   onCameraIdle: () {
                     if(widget.address != null && !widget.fromCheckout) {
                       locationProvider.updatePosition(_cameraPosition, true, null, context, true);

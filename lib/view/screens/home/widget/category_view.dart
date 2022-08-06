@@ -1,13 +1,16 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_restaurant/helper/responsive_helper.dart';
 import 'package:flutter_restaurant/localization/language_constrants.dart';
 import 'package:flutter_restaurant/provider/category_provider.dart';
-import 'package:flutter_restaurant/provider/localization_provider.dart';
 import 'package:flutter_restaurant/provider/splash_provider.dart';
 import 'package:flutter_restaurant/utill/dimensions.dart';
 import 'package:flutter_restaurant/utill/images.dart';
+import 'package:flutter_restaurant/utill/routes.dart';
 import 'package:flutter_restaurant/utill/styles.dart';
 import 'package:flutter_restaurant/view/base/title_widget.dart';
+import 'package:flutter_restaurant/view/screens/category/category_screen.dart';
 import 'package:flutter_restaurant/view/screens/home/widget/category_pop_up.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
@@ -38,11 +41,18 @@ class CategoryView extends StatelessWidget {
                                 physics: BouncingScrollPhysics(),
                                 scrollDirection: Axis.horizontal,
                                 itemBuilder: (context, index) {
+                                  log("category.categoryList[index].name.length = ${category.categoryList[index].name.length}");
                                   String _name = '';
-                                  category.categoryList[index].name.length > 20
+                                  category.categoryList[index].name.length > 15
                                       ? _name = category
                                               .categoryList[index].name
-                                              .substring(0, 20) +
+                                              .substring(
+                                                  0,
+                                                  category
+                                                      .categoryList[
+                                                          index] // error was here, 20 was written at place of this line i.e. 20 length that was static
+                                                      .name
+                                                      .length) +
                                           ' ...'
                                       : _name =
                                           category.categoryList[index].name;
@@ -50,29 +60,14 @@ class CategoryView extends StatelessWidget {
                                     padding: EdgeInsets.only(
                                         right: Dimensions.PADDING_SIZE_SMALL),
                                     child: InkWell(
-                                      onTap: () {
-                                        Provider.of<CategoryProvider>(context,
-                                                listen: false)
-                                            .getAllCategoryProductList(
-                                          context,
-                                          true,
-                                          Provider.of<LocalizationProvider>(
-                                                  context,
-                                                  listen: false)
-                                              .locale
-                                              .languageCode,
-                                          category.categoryList[index].id
-                                              .toString(),
-                                        );
-                                        // Navigator.pushNamed(
-                                        //   context,
-                                        //   Routes.getCategoryRoute(
-                                        //       category.categoryList[index].id),
-                                        //   arguments: CategoryScreen(
-                                        //       categoryModel:
-                                        //           category.categoryList[index]),
-                                        // );
-                                      }, // arguments:  category.categoryList[index].name),
+                                      onTap: () => Navigator.pushNamed(
+                                        context,
+                                        Routes.getCategoryRoute(
+                                            category.categoryList[index].id),
+                                        arguments: CategoryScreen(
+                                            categoryModel:
+                                                category.categoryList[index]),
+                                      ), // arguments:  category.categoryList[index].name),
                                       child: Column(children: [
                                         ClipOval(
                                           child: FadeInImage.assetNetwork(
@@ -114,8 +109,7 @@ class CategoryView extends StatelessWidget {
                               )
                             : Center(
                                 child: Text(getTranslated(
-                                    'no_category_available', context)),
-                              )
+                                    'no_category_available', context)))
                         : CategoryShimmer(),
                   ),
                 ),

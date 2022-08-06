@@ -4,6 +4,9 @@ import 'package:flutter_restaurant/data/model/response/category_model.dart';
 import 'package:flutter_restaurant/data/model/response/product_model.dart';
 import 'package:flutter_restaurant/data/repository/search_repo.dart';
 import 'package:flutter_restaurant/helper/api_checker.dart';
+import 'package:provider/provider.dart';
+
+import 'localization_provider.dart';
 
 class SearchProvider with ChangeNotifier {
   final SearchRepo searchRepo;
@@ -104,7 +107,8 @@ class SearchProvider with ChangeNotifier {
     _lowerValue = 0;
     notifyListeners();
 
-    ApiResponse apiResponse = await searchRepo.getSearchProductList(query);
+    ApiResponse apiResponse = await searchRepo.getSearchProductList(query,
+      Provider.of<LocalizationProvider>(context, listen: false).locale.languageCode,);
     if (apiResponse.response != null && apiResponse.response.statusCode == 200) {
       if (query.isEmpty) {
         _searchProductList = [];

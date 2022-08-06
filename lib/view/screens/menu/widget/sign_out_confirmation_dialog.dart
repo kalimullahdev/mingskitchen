@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_restaurant/helper/responsive_helper.dart';
 import 'package:flutter_restaurant/localization/language_constrants.dart';
 import 'package:flutter_restaurant/provider/auth_provider.dart';
-import 'package:flutter_restaurant/utill/color_resources.dart';
 import 'package:flutter_restaurant/utill/dimensions.dart';
 import 'package:flutter_restaurant/utill/routes.dart';
 import 'package:flutter_restaurant/utill/styles.dart';
@@ -30,7 +29,7 @@ class SignOutConfirmationDialog extends StatelessWidget {
               child: Text(getTranslated('want_to_sign_out', context), style: rubikBold, textAlign: TextAlign.center),
             ),
 
-            Divider(height: 0, color: ColorResources.getHintColor(context)),
+            Container(height: 0.5, color: Theme.of(context).hintColor),
 
             !auth.isLoading ? Row(children: [
 

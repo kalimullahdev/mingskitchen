@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_restaurant/helper/date_converter.dart';
 import 'package:flutter_restaurant/helper/network_info.dart';
 import 'package:flutter_restaurant/helper/responsive_helper.dart';
 import 'package:flutter_restaurant/localization/language_constrants.dart';
 import 'package:flutter_restaurant/provider/cart_provider.dart';
-import 'package:flutter_restaurant/provider/splash_provider.dart';
+import 'package:flutter_restaurant/provider/order_provider.dart';
 import 'package:flutter_restaurant/utill/color_resources.dart';
-import 'package:flutter_restaurant/utill/dimensions.dart';
-import 'package:flutter_restaurant/utill/images.dart';
 import 'package:flutter_restaurant/utill/styles.dart';
 import 'package:flutter_restaurant/view/screens/cart/cart_screen.dart';
 import 'package:flutter_restaurant/view/screens/home/home_screen.dart';
@@ -33,7 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-
+    Provider.of<OrderProvider>(context, listen: false).changeStatus(true);
     _pageIndex = widget.pageIndex;
 
     _pageController = PageController(initialPage: widget.pageIndex);
@@ -88,38 +85,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 },
               )
             : SizedBox(),
-        appBar: Provider.of<SplashProvider>(context, listen: false)
-                        .isRestaurantClosed() !=
-                    null &&
-                !ResponsiveHelper.isDesktop(context)
-            ? PreferredSize(
-                preferredSize: Size.fromHeight(40),
-                child: Center(
-                  child: Container(
-                    width: 1170,
-                    height: 40 + MediaQuery.of(context).padding.top,
-                    color: Theme.of(context).primaryColor,
-                    padding: EdgeInsets.only(
-                        top: MediaQuery.of(context).padding.top),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: Dimensions.PADDING_SIZE_SMALL),
-                              child: Image.asset(Images.closed,
-                                  width: 25, height: 25)),
-                          Text(
-                            '${getTranslated('restaurant_is_close_now', context)} '
-                            '${Provider.of<SplashProvider>(context, listen: false).configModel != null ? DateConverter.convertTimeToTime('${Provider.of<SplashProvider>(context, listen: false).configModel.restaurantOpenTime}:00') : ""}',
-                            style: rubikRegular.copyWith(
-                                fontSize: 12, color: Colors.black),
-                          ),
-                        ]),
-                  ),
-                ),
-              )
-            : null,
         body: PageView.builder(
           controller: _pageController,
           itemCount: _screens.length,

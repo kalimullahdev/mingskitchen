@@ -43,7 +43,7 @@ class DeliveryManWidget extends StatelessWidget {
           ),
           subtitle: RatingBar(rating: deliveryMan.rating.length > 0 ? double.parse(deliveryMan.rating[0].average) : 0, size: 15),
           trailing: InkWell(
-            onTap: () => launch('tel:${deliveryMan.phone}'),
+            onTap: () => launchUrl(Uri.parse('tel:${deliveryMan.phone}')),
             child: Container(
               padding: EdgeInsets.all(Dimensions.PADDING_SIZE_EXTRA_SMALL),
               decoration: BoxDecoration(shape: BoxShape.circle, color: ColorResources.getSearchBg(context)),

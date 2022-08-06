@@ -97,7 +97,7 @@ class ChooseLanguageScreen extends StatelessWidget {
                                       AppConstants.languages[languageProvider.selectIndex].countryCode,
                                     ));
                                     if (fromMenu) {
-                                      Provider.of<ProductProvider>(context, listen: false).getPopularProductList(
+                                      Provider.of<ProductProvider>(context, listen: false).getLatestProductList(
                                         context,true, '1', AppConstants.languages[languageProvider.selectIndex].languageCode,
                                       );
                                       Provider.of<CategoryProvider>(context, listen: false).getCategoryList(

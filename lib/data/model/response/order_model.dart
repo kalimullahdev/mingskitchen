@@ -26,6 +26,7 @@ class OrderModel {
   String _deliveryDate;
   double _extraDiscount;
   DeliveryAddress _deliveryAddress;
+  String _preparationTime;
 
   OrderModel(
       {int id,
@@ -54,6 +55,7 @@ class OrderModel {
         String orderType,
         double extraDiscount,
         DeliveryAddress deliveryAddress,
+        String preparationTime,
       }) {
     this._id = id;
     this._userId = userId;
@@ -80,6 +82,7 @@ class OrderModel {
     this._deliveryDate = deliveryDate;
     this._extraDiscount = extraDiscount;
     this._deliveryAddress = deliveryAddress;
+    this._preparationTime = preparationTime;
   }
 
   int get id => _id;
@@ -110,6 +113,7 @@ class OrderModel {
   String get deliveryDate => _deliveryDate;
   double get extraDiscount => _extraDiscount;
   DeliveryAddress get deliveryAddress => _deliveryAddress;
+  String get preparationTime => _preparationTime;
 
   OrderModel.fromJson(Map<String, dynamic> json) {
     _id = json['id'];
@@ -154,6 +158,8 @@ class OrderModel {
     _deliveryAddress = json['delivery_address'] != null
         ? new DeliveryAddress.fromJson(json['delivery_address'])
         : null;
+    _preparationTime = json['preparation_time'].toString() ?? '0';
+   // print('order pre time -- $_preparationTime');
   }
 
   Map<String, dynamic> toJson() {

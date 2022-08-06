@@ -33,16 +33,22 @@ class _LanguageHoverWidgetState extends State<LanguageHoverWidget> {
               children: widget.languageList.map((language) => InkWell(
                 onTap: () async {
                   if(languageProvider.languages.length > 0 && languageProvider.selectIndex != -1) {
-                    Provider.of<ProductProvider>(context, listen: false).offset = 1;
-                    Provider.of<LocalizationProvider>(context, listen: false).setLanguage(Locale(
-                      language.languageCode, language.countryCode
-                    ));
-                      Provider.of<ProductProvider>(context, listen: false).getPopularProductList(
-                        context, false, '1', AppConstants.languages[languageProvider.selectIndex].languageCode,
-                      );
-                      Provider.of<CategoryProvider>(context, listen: false).getCategoryList(
-                        context, true, AppConstants.languages[languageProvider.selectIndex].languageCode,
-                      );
+                    Provider.of<ProductProvider>(context, listen: false).latestOffset = 1;
+                    Provider.of<ProductProvider>(context, listen: false).popularOffset = 1;
+                    Provider.of<LocalizationProvider>(context, listen: false).setLanguage(
+                        Locale(language.languageCode, language.countryCode)
+                    );
+
+                    Provider.of<ProductProvider>(context, listen: false).getLatestProductList(
+                      context, false, '1', AppConstants.languages[languageProvider.selectIndex].languageCode,
+                    );
+
+                    Provider.of<ProductProvider>(context, listen: false).getPopularProductList(context, true, '1',
+                        Provider.of<LocalizationProvider>(context, listen: false).locale.languageCode);
+
+                    Provider.of<CategoryProvider>(context, listen: false).getCategoryList(
+                      context, true, AppConstants.languages[languageProvider.selectIndex].languageCode,
+                    );
 
                   }else {
                     showCustomSnackBar(getTranslated('select_a_language', context), context);

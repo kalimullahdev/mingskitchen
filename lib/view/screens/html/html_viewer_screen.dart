@@ -72,7 +72,7 @@ class HtmlViewerScreen extends StatelessWidget {
                         factoryBuilder: () => MyWidgetFactory(),
                         key: Key(htmlType.toString()),
                         onTapUrl: (String url) {
-                          return launch(url);
+                          return launchUrl(Uri.parse(url));
                         },),
                     ),
                     SizedBox(height: 30),
@@ -84,7 +84,7 @@ class HtmlViewerScreen extends StatelessWidget {
                     _data ?? '',
                     key: Key(htmlType.toString()),
                     onTapUrl: (String url) {
-                     return launch(url);
+                      return launchUrl(Uri.parse(url));
                     },
                   ),
                 ),

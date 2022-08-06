@@ -64,7 +64,7 @@ class SupportScreen extends StatelessWidget {
                                 minimumSize: Size(1, 50),
                               ),
                               onPressed: () {
-                                launch('tel:${Provider.of<SplashProvider>(context, listen: false).configModel.restaurantPhone}');
+                                launchUrl(Uri.parse('tel:${Provider.of<SplashProvider>(context, listen: false).configModel.restaurantPhone}'));
                               },
                               child: Text(getTranslated('call_now', context), style: Theme.of(context).textTheme.headline3.copyWith(
                                 color: Theme.of(context).primaryColor,
