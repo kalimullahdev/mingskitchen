@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_restaurant/data/model/response/address_model.dart';
+import 'package:flutter_restaurant/data/model/response/order_model.dart';
 import 'package:flutter_restaurant/helper/responsive_helper.dart';
 import 'package:flutter_restaurant/localization/language_constrants.dart';
 import 'package:flutter_restaurant/provider/location_provider.dart';
 import 'package:flutter_restaurant/provider/order_provider.dart';
+import 'package:flutter_restaurant/provider/time_provider.dart';
 import 'package:flutter_restaurant/utill/dimensions.dart';
 import 'package:flutter_restaurant/utill/routes.dart';
 import 'package:flutter_restaurant/view/base/custom_app_bar.dart';
@@ -13,6 +16,8 @@ import 'package:flutter_restaurant/view/screens/track/widget/custom_stepper.dart
 import 'package:flutter_restaurant/view/screens/track/widget/delivery_man_widget.dart';
 import 'package:flutter_restaurant/view/screens/track/widget/tracking_map_widget.dart';
 import 'package:provider/provider.dart';
+
+import 'widget/timer_view.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
   final String orderID;
@@ -29,7 +34,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     super.initState();
     Provider.of<LocationProvider>(context, listen: false).initAddressList(context);
     Provider.of<OrderProvider>(context, listen: false).getDeliveryManData(widget.orderID, context);
-    Provider.of<OrderProvider>(context, listen: false).trackOrder(widget.orderID, null, context, true);
+    Provider.of<OrderProvider>(context, listen: false).trackOrder(widget.orderID, null, context, true).whenComplete(() =>
+        Provider.of<TimerProvider>(context, listen: false).countDownTimer(Provider.of<OrderProvider>(context, listen: false).trackModel, context));
   }
   @override
   Widget build(BuildContext context) {
@@ -43,10 +49,16 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+
             ConstrainedBox(
               constraints: BoxConstraints(minHeight: !ResponsiveHelper.isDesktop(context) && _height < 600 ? _height : _height - 400),
               child: Padding(
-                padding: EdgeInsets.all(Dimensions.PADDING_SIZE_LARGE),
+                padding: EdgeInsets.only(
+                  left: Dimensions.PADDING_SIZE_LARGE,
+                  right: Dimensions.PADDING_SIZE_LARGE,
+                  bottom: Dimensions.PADDING_SIZE_LARGE,
+                  top: ResponsiveHelper.isMobile(context) ? 0 : Dimensions.PADDING_SIZE_LARGE
+                ),
                 child: Center(
                   child: Consumer<OrderProvider>(
                     builder: (context, order, child) {
@@ -59,6 +71,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+
                             Text(_status),
                             SizedBox(height: 50),
                             CustomButton(btnTxt: getTranslated('back_home', context), onTap: () {
@@ -70,6 +83,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         return Center(child: Text(order.responseModel.message));
                       }
 
+
                       return _status != null ? RefreshIndicator(
                         onRefresh: () async {
                           await Provider.of<OrderProvider>(context, listen: false).getDeliveryManData(widget.orderID, context);
@@ -78,7 +92,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         backgroundColor: Theme.of(context).primaryColor,
                         child: Scrollbar(
                           child: SingleChildScrollView(
-                            padding: EdgeInsets.all(Dimensions.PADDING_SIZE_SMALL),
                             child: Center(
                               child: Container(
                                 // width: _width > 700 ? 700 : _width,
@@ -93,7 +106,14 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
 
+                                      if(_status == _statusList[0] ||
+                                          _status == _statusList[1] ||
+                                          _status == _statusList[2] ||
+                                          _status == _statusList[3]) TimerView(),
+                                      SizedBox(height: Dimensions.PADDING_SIZE_DEFAULT),
+
                                       order.trackModel.deliveryMan != null ? DeliveryManWidget(deliveryMan: order.trackModel.deliveryMan) : SizedBox(),
+
                                       order.trackModel.deliveryMan != null ? SizedBox(height: 30) : SizedBox(),
 
                                       CustomStepper(
@@ -116,10 +136,20 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                       CustomStepper(
                                         title: getTranslated('delivered_the_food', context),
                                         isActive: _status == _statusList[4], height: _status == _statusList[3] ? 240 : 30,
-                                        child: _status == _statusList[3] ? TrackingMapWidget(
-                                          deliveryManModel: order.deliveryManModel,
-                                          orderID: widget.orderID,
-                                          addressModel: Provider.of<LocationProvider>(context).addressList!= null ? Provider.of<LocationProvider>(context).addressList.where((address) => address.id == order.trackModel.deliveryAddressId).first : null,
+                                        child: _status == _statusList[3] ? Builder(
+                                          builder: (context) {
+                                            AddressModel _address;
+                                            for(int i = 0 ; i< Provider.of<LocationProvider>(context, listen: false).addressList.length; i++) {
+                                              if(Provider.of<LocationProvider>(context, listen: false).addressList[i].id == order.trackModel.deliveryAddressId) {
+                                                _address = Provider.of<LocationProvider>(context, listen: false).addressList[i];
+                                              }
+                                            }
+                                            return TrackingMapWidget(
+                                              deliveryManModel: order.deliveryManModel,
+                                              orderID: widget.orderID,
+                                              addressModel: _address,
+                                            );
+                                          }
                                         ) : null,
                                       ),
                                       SizedBox(height: 50),

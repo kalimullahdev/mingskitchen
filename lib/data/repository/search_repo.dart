@@ -1,4 +1,5 @@
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_restaurant/data/datasource/remote/dio/dio_client.dart';
 import 'package:flutter_restaurant/data/datasource/remote/exception/api_error_handler.dart';
@@ -11,9 +12,11 @@ class SearchRepo {
   final SharedPreferences sharedPreferences;
   SearchRepo({@required this.dioClient, @required this.sharedPreferences});
 
-  Future<ApiResponse> getSearchProductList(String query) async {
+  Future<ApiResponse> getSearchProductList(String query, String languageCode) async {
     try {
-      final response = await dioClient.get(AppConstants.SEARCH_URI + query);
+      final response = await dioClient.get(AppConstants.SEARCH_URI + query,
+          options: Options(headers: {'X-localization': languageCode}));
+
       return ApiResponse.withSuccess(response);
     } catch (e) {
       return ApiResponse.withError(ApiErrorHandler.getMessage(e));

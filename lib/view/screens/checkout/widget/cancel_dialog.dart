@@ -7,8 +7,7 @@ import 'package:flutter_restaurant/view/base/custom_button.dart';
 
 class CancelDialog extends StatelessWidget {
   final int orderID;
-  final bool fromCheckout;
-  CancelDialog({@required this.orderID, @required this.fromCheckout});
+  CancelDialog({@required this.orderID});
   
   @override
   Widget build(BuildContext context) {
@@ -29,19 +28,19 @@ class CancelDialog extends StatelessWidget {
               color: Theme.of(context).primaryColor, size: 50,
             ),
           ),
-          SizedBox(height: Dimensions.PADDING_SIZE_LARGE),
+          //SizedBox(height: Dimensions.PADDING_SIZE_LARGE),
 
-          fromCheckout ? Text(
-            getTranslated('order_placed_successfully', context),
-            style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE, color: Theme.of(context).primaryColor),
-          ) : SizedBox(),
-          SizedBox(height: fromCheckout ? Dimensions.PADDING_SIZE_SMALL : 0),
+          // fromCheckout ? Text(
+          //   getTranslated('order_placed_successfully', context),
+          //   style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_LARGE, color: Theme.of(context).primaryColor),
+          // ) : SizedBox(),
+          // SizedBox(height: fromCheckout ? Dimensions.PADDING_SIZE_SMALL : 0),
 
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        orderID != null ?   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Text('${getTranslated('order_id', context)}:', style: rubikRegular.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL)),
             SizedBox(width: Dimensions.PADDING_SIZE_EXTRA_SMALL),
             Text(orderID.toString(), style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL)),
-          ]),
+          ]) : SizedBox(),
           SizedBox(height: 30),
 
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -76,8 +75,6 @@ class CancelDialog extends StatelessWidget {
             SizedBox(width: 10),
             Expanded(child: CustomButton(btnTxt: 'Order Details', onTap: () {
               Navigator.pop(context);
-              Navigator.pop(context);
-              Navigator.pushNamed(context, Routes.getOrderDetailsRoute(orderID));
             })),
           ]),
 

@@ -26,8 +26,8 @@ class LocalizationProvider extends ChangeNotifier {
   }
 
   _loadCurrentLanguage() async {
-    _locale = Locale(sharedPreferences.getString(AppConstants.LANGUAGE_CODE) ?? 'en',
-        sharedPreferences.getString(AppConstants.COUNTRY_CODE) ?? 'US');
+    _locale = Locale(sharedPreferences.getString(AppConstants.LANGUAGE_CODE) ?? AppConstants.languages[0].languageCode,
+        sharedPreferences.getString(AppConstants.COUNTRY_CODE) ?? AppConstants.languages[0].countryCode);
     _isLtr = _locale.languageCode == 'en';
     notifyListeners();
   }

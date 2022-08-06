@@ -1,6 +1,8 @@
+import 'dart:typed_data';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_restaurant/data/model/response/address_model.dart';
 import 'package:flutter_restaurant/data/model/response/order_model.dart';
 import 'package:flutter_restaurant/helper/responsive_helper.dart';
 import 'package:flutter_restaurant/localization/language_constrants.dart';
@@ -12,9 +14,6 @@ import 'package:flutter_restaurant/view/base/custom_app_bar.dart';
 import 'package:flutter_restaurant/view/base/footer_view.dart';
 import 'package:flutter_restaurant/view/base/web_app_bar.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-import 'dart:typed_data';
-import 'dart:ui';
 
 
 class MapWidget extends StatefulWidget {

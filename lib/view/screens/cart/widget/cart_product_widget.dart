@@ -14,7 +14,9 @@ import 'package:flutter_restaurant/utill/images.dart';
 import 'package:flutter_restaurant/utill/styles.dart';
 import 'package:flutter_restaurant/view/base/custom_snackbar.dart';
 import 'package:flutter_restaurant/view/base/rating_bar.dart';
+import 'package:flutter_restaurant/view/screens/home/web/widget/CartBottomSheetWeb.dart';
 import 'package:flutter_restaurant/view/screens/home/widget/cart_bottom_sheet.dart';
+import 'package:flutter_restaurant/view/screens/home/widget/marque_text.dart';
 import 'package:provider/provider.dart';
 
 class CartProductWidget extends StatelessWidget {
@@ -28,13 +30,16 @@ class CartProductWidget extends StatelessWidget {
   Widget build(BuildContext context) {
 
     String _variationText = '';
-    if(cart.variation !=null ) {
-      if(cart.variation.length == cart.product.choiceOptions.length) {
+    if(cart.variation != null && cart.variation.length > 0 ) {
+      List<String> _variationTypes = cart.variation[0].type != null ? cart.variation[0].type.split('-') : [];
+      if(_variationTypes.length == cart.product.choiceOptions.length) {
         int _index = 0;
         cart.product.choiceOptions.forEach((choice) {
-          _variationText = _variationText + '${(_index == 0) ? '' : ',  '}${choice.title} - ${cart.variation[_index].type}';
+          _variationText = _variationText + '${(_index == 0) ? '' : ',  '}${choice.title} - ${_variationTypes[_index]}';
           _index = _index + 1;
         });
+      }else {
+        _variationText = cart.product.variations[0].type;
       }
     }
     return InkWell(
@@ -47,16 +52,19 @@ class CartProductWidget extends StatelessWidget {
             product: cart.product,
             cartIndex: cartIndex,
             cart: cart,
+            fromCart: true,
             callback: (CartModel cartModel) {
               showCustomSnackBar(getTranslated('updated_in_cart', context), context, isError: false);
             },
           ),
         ) :
         showDialog(context: context, builder: (con) => Dialog(
-          child: CartBottomSheet(
+          child: CartBottomSheetWeb(
             product: cart.product,
             cartIndex: cartIndex,
             cart: cart,
+            isCart: true,
+            fromCart: true,
             callback: (CartModel cartModel) {
               showCustomSnackBar(getTranslated('updated_in_cart', context), context, isError: false);
             },
@@ -141,12 +149,20 @@ class CartProductWidget extends StatelessWidget {
 
                         cart.product.variations.length > 0 ? Padding(
                           padding: EdgeInsets.only(top: Dimensions.PADDING_SIZE_EXTRA_SMALL),
-                          child: Row(children: [
-                            Text('${getTranslated('variation', context)}: ', style: poppinsRegular.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL)),
-                            Flexible(child: Text(
-                              _variationText,maxLines: 1,
-                              style: poppinsRegular.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL, color: Theme.of(context).disabledColor),
-                            )),
+                          child: Row(mainAxisSize: MainAxisSize.min,children: [
+                            Flexible(child: MarqueeWidget(
+                              backDuration: Duration(microseconds: 500),
+                              animationDuration: Duration(microseconds: 500),
+                              direction: Axis.horizontal,
+                              child: Row(children: [
+                                Text(
+                                  '${getTranslated('variation', context)}: ',
+                                  style: poppinsRegular.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL),
+                                ),
+
+                                Text(_variationText, style: poppinsRegular.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL, color: Theme.of(context).disabledColor))
+                              ],),
+                            ),),
                           ]),
                         ) : SizedBox(),
                       ]),

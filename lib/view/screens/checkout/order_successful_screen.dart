@@ -57,7 +57,7 @@ class OrderSuccessfulScreen extends StatelessWidget {
                        ),
                        SizedBox(height: Dimensions.PADDING_SIZE_SMALL),
 
-                       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                       if(status == 0) Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                          Text('${getTranslated('order_id', context)}:', style: rubikRegular.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL)),
                          SizedBox(width: Dimensions.PADDING_SIZE_EXTRA_SMALL),
                          Text(orderID, style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL)),
@@ -105,11 +105,12 @@ class OrderSuccessfulScreen extends StatelessWidget {
                  ),
                  SizedBox(height: Dimensions.PADDING_SIZE_SMALL),
 
-                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                if(status == 0)  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                    Text('${getTranslated('order_id', context)}:', style: rubikRegular.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL)),
                    SizedBox(width: Dimensions.PADDING_SIZE_EXTRA_SMALL),
                    Text(orderID, style: rubikMedium.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL)),
                  ]),
+
                  SizedBox(height: 30),
 
                  Container(width: ResponsiveHelper.isDesktop(context) ? 400:MediaQuery.of(context).size.width,

@@ -2,106 +2,103 @@ import 'package:flutter/material.dart';
 import 'package:flutter_restaurant/helper/menu_type.dart';
 import 'package:flutter_restaurant/localization/language_constrants.dart';
 import 'package:flutter_restaurant/utill/routes.dart';
-import 'package:flutter_restaurant/view/base/mars_menu_bar.dart' as mi;
+import 'package:flutter_restaurant/view/base/mars_menu_bar.dart';
 
 class MenuBar extends StatelessWidget {
   final bool isLeft;
   MenuBar(this.isLeft);
-  List<mi.MenuItem> getCartMenu(BuildContext context) {
+  List<MenuItemView> getCartMenu(BuildContext context) {
     return [
-      mi.MenuItem(
+      MenuItemView(
         menuType: MenuType.menu,
-        onTap: () =>
-            Navigator.pushNamed(context, Routes.getDashboardRoute('menu')),
+        onTap: () => Navigator.pushNamed(context, Routes.getDashboardRoute('menu')),
       ),
-      mi.MenuItem(
+      MenuItemView(
         menuType: MenuType.cart,
         icon: Icons.shopping_cart,
-        onTap: () =>
-            Navigator.pushNamed(context, Routes.getDashboardRoute('cart')),
+        onTap: () => Navigator.pushNamed(context, Routes.getDashboardRoute('cart')),
       ),
     ];
   }
-
-  List<mi.MenuItem> getMenus(BuildContext context) {
+  List<MenuItemView> getMenus(BuildContext context) {
     return [
-      mi.MenuItem(
+      MenuItemView(
         menuType: MenuType.text,
         title: getTranslated('home', context),
-        onTap: () =>
-            Navigator.pushNamed(context, Routes.getDashboardRoute('home')),
+        onTap: () => Navigator.pushNamed(context, Routes.getDashboardRoute('home')),
       ),
 
-      // mi.MenuItem(
+      // MenuItemView(
       //   menuType: MenuType.text,
       //   title: 'Categories',
       //   onTap: () => {
       //
       //   }
-      //   //children:[for(var i = 0; i < Provider.of<CategoryProvider>(context, listen: false).categoryList.length; i++) mi.MenuItem(menuType: MenuType.text, title: Provider.of<CategoryProvider>(context, listen: false).categoryList[i].name)]
+      //   //children:[for(var i = 0; i < Provider.of<CategoryProvider>(context, listen: false).categoryList.length; i++) MenuItemView(menuType: MenuType.text, title: Provider.of<CategoryProvider>(context, listen: false).categoryList[i].name)]
       // ),
-      mi.MenuItem(
+      MenuItemView(
         menuType: MenuType.text,
         title: 'Favourite',
-        onTap: () =>
-            Navigator.pushNamed(context, Routes.getDashboardRoute('favourite')),
+        onTap: () => Navigator.pushNamed(context, Routes.getDashboardRoute('favourite')),
       ),
-      // mi.MenuItem(
+      // MenuItemView(
       //   menuType: MenuType.search
       // ),
+      
+
     ];
     // return [
-    //   mi.MenuItem(
+    //   MenuItemView(
     //     title: getTranslated('home', context),
     //     icon: Icons.home_filled,
     //     onTap: () => Navigator.pushNamed(context, Routes.getDashboardRoute('home')),
     //   ),
-    //   mi.MenuItem(
+    //   MenuItemView(
     //     title: getTranslated('set_menu', context),
     //     icon: Icons.fastfood_outlined,
     //     onTap: () => Navigator.pushNamed(context, Routes.getSetMenuRoute()),
     //   ),
-    //   mi.MenuItem(
+    //   MenuItemView(
     //     title: getTranslated('necessary_links', context),
     //     icon: Icons.settings,
     //     children: [
-    //       mi.MenuItem(
+    //       MenuItemView(
     //         title: getTranslated('privacy_policy', context),
     //         onTap: () => Navigator.pushNamed(context, Routes.getPolicyRoute()),
     //       ),
-    //       mi.MenuItem(
+    //       MenuItemView(
     //         title: getTranslated('terms_and_condition', context),
     //         onTap: () => Navigator.pushNamed(context, Routes.getTermsRoute()),
     //       ),
-    //       mi.MenuItem(
+    //       MenuItemView(
     //         title: getTranslated('about_us', context),
     //         onTap: () => Navigator.pushNamed(context, Routes.getAboutUsRoute()),
     //       ),
     //
     //     ],
     //   ),
-    //   mi.MenuItem(
+    //   MenuItemView(
     //     title: getTranslated('favourite', context),
     //     icon: Icons.favorite_border,
     //     onTap: () => Navigator.pushNamed(context, Routes.getDashboardRoute('favourite')),
     //   ),
     //
-    //   mi.MenuItem(
+    //   MenuItemView(
     //     title: getTranslated('menu', context),
     //     icon: Icons.menu,
     //     onTap: () => Navigator.pushNamed(context, Routes.getDashboardRoute('menu')),
     //   ),
     //
-    //   _isLoggedIn ?  mi.MenuItem(
+    //   _isLoggedIn ?  MenuItemView(
     //     title: getTranslated('profile', context),
     //     icon: Icons.person,
     //     onTap: () =>  Navigator.pushNamed(context, Routes.getProfileRoute()),
-    //   ):  mi.MenuItem(
+    //   ):  MenuItemView(
     //     title: getTranslated('login', context),
     //     icon: Icons.lock,
     //     onTap: () => Navigator.pushNamed(context, Routes.getLoginRoute()),
     //   ),
-    //   mi.MenuItem(
+    //   MenuItemView(
     //     menuType: MenuType.cart,
     //     title: '',
     //     icon: Icons.shopping_cart,
@@ -113,18 +110,19 @@ class MenuBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Container(
-      //   //color: Colors.white,
-      // width: 800,
-      child: mi.PlutoMenuBar(
+    //   //color: Colors.white,
+    // width: 800,
+      child: PlutoMenuBar(
         backgroundColor: Theme.of(context).cardColor,
         gradient: false,
         goBackButtonText: 'Back',
-        textStyle:
-            TextStyle(color: Theme.of(context).textTheme.bodyText1.color),
+        textStyle: TextStyle(color: Theme.of(context).textTheme.bodyText1.color),
         moreIconColor: Theme.of(context).textTheme.bodyText1.color,
         menuIconColor: Theme.of(context).textTheme.bodyText1.color,
-        menus: isLeft ? getMenus(context) : getCartMenu(context),
+        menus: isLeft ?  getMenus(context) : getCartMenu(context),
+
       ),
     );
   }

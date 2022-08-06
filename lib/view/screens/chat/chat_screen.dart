@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_restaurant/data/model/response/chat_model.dart';
 import 'package:flutter_restaurant/data/model/response/order_model.dart';
 import 'package:flutter_restaurant/helper/notification_helper.dart';
 import 'package:flutter_restaurant/helper/responsive_helper.dart';

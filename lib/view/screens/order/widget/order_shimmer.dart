@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_restaurant/provider/order_provider.dart';
 import 'package:flutter_restaurant/provider/theme_provider.dart';
-import 'package:flutter_restaurant/utill/color_resources.dart';
 import 'package:flutter_restaurant/utill/dimensions.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
@@ -54,7 +53,7 @@ class OrderShimmer extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.grey[300],
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(width: 2, color: ColorResources.DISABLE_COLOR),
+
                     ),
                   )),
                   SizedBox(width: 20),

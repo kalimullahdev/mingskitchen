@@ -24,13 +24,19 @@ class CartProvider extends ChangeNotifier {
   }
 
   void addToCart(CartModel cartModel, int index) {
-    if(index != null) {
-      _amount = _amount - (_cartList[index].discountedPrice * _cartList[index].quantity);
+    // if(index != null) {
+    //   _amount = _amount - (_cartList[index].discountedPrice * _cartList[index].quantity);
+    //   _cartList.replaceRange(index, index+1, [cartModel]);
+    // }else {
+    //   _cartList.add(cartModel);
+    // }
+    // _amount = _amount + (cartModel.discountedPrice * cartModel.quantity);
+    // cartRepo.addToCartList(_cartList);
+    if(index != null && index != -1) {
       _cartList.replaceRange(index, index+1, [cartModel]);
     }else {
       _cartList.add(cartModel);
     }
-    _amount = _amount + (cartModel.discountedPrice * cartModel.quantity);
     cartRepo.addToCartList(_cartList);
     notifyListeners();
   }
@@ -73,17 +79,17 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool isExistInCart(CartModel cartModel, bool isUpdate, int cartIndex) {
-    for(int index=0; index<_cartList.length; index++) {
-      if(_cartList[index].product.id == cartModel.product.id && (_cartList[index].variation.length > 0 ? _cartList[index].variation[0].type == cartModel.variation[0].type : true)) {
+  int isExistInCart(int productId, String variationType, bool isUpdate, int cartIndex,) {
+    for(int index = 0; index<_cartList.length; index++) {
+      if(_cartList[index].product.id == productId && (_cartList[index].variation.length > 0 ? _cartList[index].variation[0].type == variationType : true)) {
         if((isUpdate && index == cartIndex)) {
-          return false;
+          return -1;
         }else {
-          return true;
+          return index;
         }
       }
     }
-    return false;
+    return -1;
   }
   int getCartProductIndex (CartModel cartModel) {
     for(int index = 0; index < _cartList.length; index ++) {

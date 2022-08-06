@@ -12,21 +12,21 @@ import 'package:flutter_restaurant/view/base/on_hover.dart';
 import 'package:provider/provider.dart';
 
 class PlutoMenuBar extends StatefulWidget {
-  /// Pass [MenuItem] to List.
-  /// create submenus by continuing to pass MenuItem to children as a List.
+  /// Pass [MenuItemView] to List.
+  /// create submenus by continuing to pass MenuItemView to children as a List.
   ///
   /// ```dart
-  /// MenuItem(
+  /// MenuItemView(
   ///   title: 'Menu 1',
   ///   children: [
-  ///     MenuItem(
+  ///     MenuItemView(
   ///       title: 'Menu 1-1',
   ///       onTap: () => print('Menu 1-1 tap'),
   ///     ),
   ///   ],
   /// ),
   /// ```
-  final List<MenuItem> menus;
+  final List<MenuItemView> menus;
 
   /// Text of the back button. (default. 'Go back')
   final String goBackButtonText;
@@ -107,7 +107,7 @@ class _PlutoMenuBarState extends State<PlutoMenuBar> {
   }
 }
 
-class MenuItem {
+class MenuItemView {
   /// Menu title
   final String title;
 
@@ -116,12 +116,12 @@ class MenuItem {
   /// Callback executed when a menu is tapped
   final Function() onTap;
 
-  /// Passing [MenuItem] to a [List] creates a sub-menu.
-  final List<MenuItem> children;
+  /// Passing [MenuItemView] to a [List] creates a sub-menu.
+  final List<MenuItemView> children;
 
   final MenuType menuType;
 
-  MenuItem({
+  MenuItemView({
     this.title,
     this.icon,
     this.onTap,
@@ -129,7 +129,7 @@ class MenuItem {
     this.menuType,
   }) : _key = GlobalKey();
 
-  MenuItem._back({
+  MenuItemView._back({
     this.title,
     this.icon,
     this.onTap,
@@ -152,7 +152,7 @@ class MenuItem {
 }
 
 class _MenuWidget extends StatelessWidget {
-  final MenuItem menu;
+  final MenuItemView menu;
 
   final String goBackButtonText;
 
@@ -179,7 +179,7 @@ class _MenuWidget extends StatelessWidget {
         this.textStyle,
       }) : super(key: menu._key);
 
-  Widget _buildPopupItem(MenuItem _menu) {
+  Widget _buildPopupItem(MenuItemView _menu) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -213,9 +213,9 @@ class _MenuWidget extends StatelessWidget {
     );
   }
 
-  Future<MenuItem> _showPopupMenu(
+  Future<MenuItemView> _showPopupMenu(
       BuildContext context,
-      List<MenuItem> menuItems,
+      List<MenuItemView> menuItemViews,
       ) async {
     final RenderBox overlay = Overlay.of(context).context.findRenderObject();
 
@@ -229,8 +229,8 @@ class _MenuWidget extends StatelessWidget {
         overlay.size.width,
         overlay.size.height,
       ),
-      items: menuItems.map((menu) {
-        return PopupMenuItem<MenuItem>(
+      items: menuItemViews.map((menu) {
+        return PopupMenuItem<MenuItemView>(
           value: menu,
           child: _buildPopupItem(menu),
         );
@@ -242,13 +242,13 @@ class _MenuWidget extends StatelessWidget {
 
   Widget _getMenu(
       BuildContext context,
-      MenuItem menu,
+      MenuItemView menu,
       ) {
-    Future<MenuItem> _getSelectedMenu(
-        MenuItem menu, {
-          MenuItem previousMenu,
+    Future<MenuItemView> _getSelectedMenu(
+        MenuItemView menu, {
+          MenuItemView previousMenu,
           int stackIdx,
-          List<MenuItem> stack,
+          List<MenuItemView> stack,
         }) async {
       if (!menu._hasChildren) {
         return menu;
@@ -257,13 +257,13 @@ class _MenuWidget extends StatelessWidget {
       final items = [...menu.children];
 
       if (previousMenu != null) {
-        items.add(MenuItem._back(
+        items.add(MenuItemView._back(
           title: goBackButtonText,
           children: previousMenu.children,
         ));
       }
 
-      MenuItem _selectedMenu = await _showPopupMenu(
+      MenuItemView _selectedMenu = await _showPopupMenu(
         context,
         items,
       );
@@ -272,7 +272,7 @@ class _MenuWidget extends StatelessWidget {
         return null;
       }
 
-      MenuItem _previousMenu = menu;
+      MenuItemView _previousMenu = menu;
 
       if (!_selectedMenu._hasChildren) {
         return _selectedMenu;
@@ -306,7 +306,7 @@ class _MenuWidget extends StatelessWidget {
     return InkWell(
       onTap: () async {
         if (menu._hasChildren) {
-          MenuItem selectedMenu = await _getSelectedMenu(menu);
+          MenuItemView selectedMenu = await _getSelectedMenu(menu);
 
           if (selectedMenu?.onTap != null) {
             selectedMenu.onTap();

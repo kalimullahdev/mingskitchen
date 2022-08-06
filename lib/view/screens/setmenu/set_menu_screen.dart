@@ -14,12 +14,12 @@ import 'package:flutter_restaurant/utill/dimensions.dart';
 import 'package:flutter_restaurant/utill/images.dart';
 import 'package:flutter_restaurant/utill/styles.dart';
 import 'package:flutter_restaurant/view/base/custom_app_bar.dart';
+import 'package:flutter_restaurant/view/base/custom_snackbar.dart';
 import 'package:flutter_restaurant/view/base/no_data_screen.dart';
 import 'package:flutter_restaurant/view/base/rating_bar.dart';
 import 'package:flutter_restaurant/view/screens/home/widget/cart_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 
-import '../../base/custom_snackbar.dart';
 
 class SetMenuScreen extends StatelessWidget {
   @override
@@ -152,9 +152,9 @@ class SetMenuScreen extends StatelessWidget {
                                           children: [
                                             Text(
                                               '${PriceConverter.convertPrice(context, _startingPrice, discount: setMenu.setMenuList[index].discount,
-                                                  discountType: setMenu.setMenuList[index].discountType, asFixed: 1)}''${_endingPrice!= null
+                                                  discountType: setMenu.setMenuList[index].discountType)}''${_endingPrice!= null
                                                   ? ' - ${PriceConverter.convertPrice(context, _endingPrice, discount: setMenu.setMenuList[index].discount,
-                                                  discountType: setMenu.setMenuList[index].discountType, asFixed: 1)}' : ''}',
+                                                  discountType: setMenu.setMenuList[index].discountType)}' : ''}',
                                               style: rubikBold.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL),
                                             ),
                                             _discount > 0 ? SizedBox() : Icon(Icons.add, color: Theme.of(context).textTheme.bodyText1.color),
@@ -162,8 +162,8 @@ class SetMenuScreen extends StatelessWidget {
                                         ),
                                         _discount > 0 ? Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                                           Text(
-                                            '${PriceConverter.convertPrice(context, _startingPrice, asFixed: 1)}'
-                                                '${_endingPrice!= null ? ' - ${PriceConverter.convertPrice(context, _endingPrice, asFixed: 1)}' : ''}',
+                                            '${PriceConverter.convertPrice(context, _startingPrice)}'
+                                                '${_endingPrice!= null ? ' - ${PriceConverter.convertPrice(context, _endingPrice)}' : ''}',
                                             style: rubikBold.copyWith(
                                               fontSize: Dimensions.FONT_SIZE_EXTRA_SMALL,
                                               color: ColorResources.getGreyColor(context),

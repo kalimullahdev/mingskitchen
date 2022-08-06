@@ -15,6 +15,13 @@ class PlaceOrderBody {
   String _deliveryDate;
   int _branchId;
   double _distance;
+  String _transactionReference;
+
+  PlaceOrderBody copyWith({String paymentMethod, String transactionReference}) {
+    _paymentMethod = paymentMethod;
+    _transactionReference = transactionReference;
+    return this;
+  }
 
   PlaceOrderBody(
       {@required List<Cart> cart,
@@ -29,7 +36,9 @@ class PlaceOrderBody {
         @required String deliveryTime,
         @required String deliveryDate,
         @required String orderNote,
-        @required double distance}) {
+        @required double distance,
+        String transactionReference,
+      }) {
     this._cart = cart;
     this._couponDiscountAmount = couponDiscountAmount;
     this._couponDiscountTitle = couponDiscountTitle;
@@ -43,6 +52,7 @@ class PlaceOrderBody {
     this._deliveryDate = deliveryDate;
     this._branchId = branchId;
     this._distance = distance;
+    this._transactionReference = transactionReference;
   }
 
   List<Cart> get cart => _cart;
@@ -58,6 +68,7 @@ class PlaceOrderBody {
   String get deliveryDate => _deliveryDate;
   int get branchId => _branchId;
   double get distance => _distance;
+  String get transactionReference => _transactionReference;
 
   PlaceOrderBody.fromJson(Map<String, dynamic> json) {
     if (json['cart'] != null) {
@@ -97,6 +108,9 @@ class PlaceOrderBody {
     data['delivery_date'] = this._deliveryDate;
     data['branch_id'] = this._branchId;
     data['distance'] = this._distance;
+    if(_transactionReference != null) {
+      data['transaction_reference'] = this._transactionReference;
+    }
     return data;
   }
 }

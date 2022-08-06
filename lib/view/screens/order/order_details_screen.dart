@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_restaurant/data/model/response/address_model.dart';
 import 'package:flutter_restaurant/data/model/response/order_details_model.dart';
-import 'package:flutter_restaurant/data/model/response/product_model.dart';
 import 'package:flutter_restaurant/data/model/response/order_model.dart';
+import 'package:flutter_restaurant/data/model/response/product_model.dart';
 import 'package:flutter_restaurant/helper/date_converter.dart';
 import 'package:flutter_restaurant/helper/price_converter.dart';
 import 'package:flutter_restaurant/helper/responsive_helper.dart';
@@ -47,7 +46,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   void _loadData(BuildContext context) async {
     await Provider.of<OrderProvider>(context, listen: false).trackOrder(widget.orderId.toString(), widget.orderModel, context, false);
     if(widget.orderModel == null) {
-      await Provider.of<SplashProvider>(context, listen: false).initConfig(_scaffold);
+      await Provider.of<SplashProvider>(context, listen: false).initConfig(context);
     }
     await Provider.of<LocationProvider>(context, listen: false).initAddressList(context);
     Provider.of<OrderProvider>(context, listen: false).getOrderDetails(widget.orderId.toString(), context);
@@ -137,7 +136,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                       Icon(Icons.watch_later, size: 17),
                                       SizedBox(width: Dimensions.PADDING_SIZE_EXTRA_SMALL),
                                       order.trackModel.deliveryTime != null ? Text(
-                                        DateConverter.deliveryDateAndTimeToDate(order.trackModel.deliveryDate, order.trackModel.deliveryTime),
+                                        DateConverter.deliveryDateAndTimeToDate(order.trackModel.deliveryDate, order.trackModel.deliveryTime, context),
                                         style: rubikRegular,
                                       ) : Text(
                                         DateConverter.isoStringToLocalDateOnly(order.trackModel.createdAt),
@@ -153,17 +152,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                       Expanded(child: SizedBox()),
                                       order.trackModel.orderType == 'delivery' ? TextButton.icon(
                                         onPressed: () {
-                                         /* AddressModel _address;
-                                          for(AddressModel address in Provider.of<LocationProvider>(context, listen: false).addressList) {
-                                            if(address.id == order.trackModel.deliveryAddressId) {
-                                              _address = address;
-                                              break;
-                                            }
-                                          }
-                                          if(_address != null) {
-                                            Navigator.pushNamed(context, Routes.getMapRoute(_address));
-                                          }*/
-                                          ///--------
                                           if(order.trackModel.deliveryAddress != null) {
                                             Navigator.push(context, MaterialPageRoute(builder: (_) => MapWidget(address: order.trackModel.deliveryAddress)));
                                           }
@@ -303,19 +291,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                                           style: poppinsRegular.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL),
                                                         ),
                                                       ]):SizedBox(),
-                                                      /*Row(children: [
-                                                        Container(height: 10, width: 10, decoration: BoxDecoration(
-                                                          shape: BoxShape.circle,
-                                                          color: Theme.of(context).textTheme.bodyText1.color,
-                                                        )),
-                                                        SizedBox(width: Dimensions.PADDING_SIZE_EXTRA_SMALL),
-                                                        Text(
-                                                          '${getTranslated(order.trackModel.orderStatus == 'delivered' ? 'delivered_at' : 'ordered_at', context)} '
-                                                              '${DateConverter.isoStringToLocalDateOnly(order.trackModel.orderStatus == 'delivered' ? order.orderDetails[index].updatedAt
-                                                              : order.orderDetails[index].createdAt)}',
-                                                          style: rubikRegular.copyWith(fontSize: Dimensions.FONT_SIZE_SMALL),
-                                                        ),
-                                                      ]),*/
                                                     ]),
                                                   ),
                                                 ]),
@@ -474,6 +449,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                               )),
                                             ),
                                           )) : SizedBox(),
+
                                           (order.trackModel.paymentStatus == 'unpaid' && order.trackModel.paymentMethod != 'cash_on_delivery' && order.trackModel.orderStatus
                                               != 'delivered') ? Expanded(child: Container(
                                             height: 50,
@@ -487,7 +463,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                                       '&&callback=http://$hostname${Routes.ORDER_SUCCESS_SCREEN}/${order.trackModel.id}';
                                                   html.window.open(selectedUrl, "_self");
                                                 }else {
-                                                  Navigator.pushReplacementNamed(context, Routes.getPaymentRoute('order', order.trackModel.id.toString(), order.trackModel.userId));
+                                                  Navigator.pushReplacementNamed(context, Routes.getPaymentRoute(page: 'order',id:  order.trackModel.id.toString(),user:  order.trackModel.userId));
+
                                                 }
                                               },
                                             ),
@@ -603,7 +580,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               Icon(Icons.watch_later, size: 17),
                               SizedBox(width: Dimensions.PADDING_SIZE_EXTRA_SMALL),
                               order.trackModel.deliveryTime != null ? Text(
-                                DateConverter.deliveryDateAndTimeToDate(order.trackModel.deliveryDate, order.trackModel.deliveryTime),
+                                DateConverter.deliveryDateAndTimeToDate(order.trackModel.deliveryDate, order.trackModel.deliveryTime, context),
                                 style: rubikRegular,
                               ) : Text(
                                 DateConverter.isoStringToLocalDateOnly(order.trackModel.createdAt),
@@ -620,16 +597,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
                               order.trackModel.orderType == 'delivery' ? TextButton.icon(
                                 onPressed: () {
-                                 /* AddressModel _address;
-                                  for(AddressModel address in Provider.of<LocationProvider>(context, listen: false).addressList) {
-                                    if(address.id == order.trackModel.deliveryAddressId) {
-                                      _address = address;
-                                      break;
-                                    }
-                                  }
-                                  if(_address != null) {
-                                    Navigator.pushNamed(context, Routes.getMapRoute(_address));
-                                  }*/
                                   if(order.trackModel.deliveryAddress != null) {
                                     Navigator.push(context, MaterialPageRoute(builder: (_) => MapWidget(address: order.trackModel.deliveryAddress)));
                                   }
@@ -938,7 +905,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                 '&&callback=http://$hostname${Routes.ORDER_SUCCESS_SCREEN}/${order.trackModel.id}';
                             html.window.open(selectedUrl, "_self");
                           }else {
-                            Navigator.pushReplacementNamed(context, Routes.getPaymentRoute('order', order.trackModel.id.toString(), order.trackModel.userId));
+                            Navigator.pushReplacementNamed(context, Routes.getPaymentRoute(page: 'order',id:  order.trackModel.id.toString(),user:  order.trackModel.userId));
                           }
                         },
                       ),

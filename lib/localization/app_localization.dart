@@ -34,7 +34,7 @@ class _DemoLocalizationsDelegate extends LocalizationsDelegate<AppLocalization> 
   @override
   bool isSupported(Locale locale) {
     List<String> _languageString = [];
-    AppConstants.languages.forEach( (language) {
+    AppConstants.languages.forEach((language) {
       _languageString.add(language.languageCode);
     });
     return _languageString.contains(locale.languageCode);
