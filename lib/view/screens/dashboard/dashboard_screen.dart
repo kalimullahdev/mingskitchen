@@ -89,7 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               )
             : SizedBox(),
         appBar: Provider.of<SplashProvider>(context, listen: false)
-                        .isRestaurantClosed() !=
+                        .isRestaurantOpenNow(context) !=
                     null &&
                 !ResponsiveHelper.isDesktop(context)
             ? PreferredSize(
@@ -111,7 +111,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   width: 25, height: 25)),
                           Text(
                             '${getTranslated('restaurant_is_close_now', context)} '
-                            '${Provider.of<SplashProvider>(context, listen: false).configModel != null ? DateConverter.convertTimeToTime('${Provider.of<SplashProvider>(context, listen: false).configModel.restaurantOpenTime}:00') : ""}',
+                            '${Provider.of<SplashProvider>(context, listen: false).configModel != null ? DateConverter.convertTimeToTime(
+                                '${Provider.of<SplashProvider>(context, listen: false).configModel.restaurantScheduleTime.first.openingTime}:00',
+                                context,
+                              ) : ""}',
                             style: rubikRegular.copyWith(
                                 fontSize: 12, color: Colors.black),
                           ),

@@ -20,6 +20,7 @@ import 'package:flutter_restaurant/utill/routes.dart';
 import 'package:flutter_restaurant/utill/styles.dart';
 import 'package:flutter_restaurant/view/base/footer_view.dart';
 import 'package:flutter_restaurant/view/base/on_hover.dart';
+import 'package:flutter_restaurant/view/base/pricing_table.dart';
 import 'package:flutter_restaurant/view/base/title_widget.dart';
 import 'package:flutter_restaurant/view/base/web_app_bar.dart';
 import 'package:flutter_restaurant/view/screens/home/web/widget/category_web_view.dart';
@@ -401,7 +402,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             // ResponsiveHelper.isDesktop(context)
                             //     ? SizedBox()
                             //     : BannerView(),
-
+                            SizedBox(
+                              height: Dimensions.PADDING_SIZE_EXTRA_LARGE,
+                            ),
+                            PricingTable(),
                             ResponsiveHelper.isDesktop(context)
                                 ? Row(
                                     mainAxisAlignment: MainAxisAlignment.center,

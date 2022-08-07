@@ -1,7 +1,5 @@
 class ConfigModel {
   String _restaurantName;
-  String _restaurantOpenTime;
-  String _restaurantCloseTime;
   String _restaurantLogo;
   String _restaurantAddress;
   String _restaurantPhone;
@@ -30,11 +28,14 @@ class ConfigModel {
   List<SocialMediaLink> _socialMediaLink;
   String _softwareVersion;
   String _footerCopyright;
+  String _timeZone;
+  int _decimalPointSettings;
+  List<RestaurantScheduleTime> _restaurantScheduleTime;
+  int _scheduleOrderSlotDuration;
+  String _timeFormat;
 
   ConfigModel({
     String restaurantName,
-    String restaurantOpenTime,
-    String restaurantCloseTime,
     String restaurantLogo,
     String restaurantAddress,
     String restaurantPhone,
@@ -63,10 +64,13 @@ class ConfigModel {
     List<SocialMediaLink> socialMediaLink,
     String softwareVersion,
     String footerCopyright,
+    String timeZone,
+    int decimalPointSettings,
+    List<RestaurantScheduleTime> restaurantScheduleTime,
+    int scheduleOrderSlotDuration,
+    String timeFormat,
   }) {
     this._restaurantName = restaurantName;
-    this._restaurantOpenTime = restaurantOpenTime;
-    this._restaurantCloseTime = restaurantCloseTime;
     this._restaurantLogo = restaurantLogo;
     this._restaurantAddress = restaurantAddress;
     this._restaurantPhone = restaurantPhone;
@@ -101,11 +105,14 @@ class ConfigModel {
     }
     this._softwareVersion = softwareVersion ?? '';
     this._footerCopyright = footerCopyright ?? '';
+    this._timeZone = timeZone ?? '';
+    this._decimalPointSettings = decimalPointSettings ?? 1;
+    this._restaurantScheduleTime = restaurantScheduleTime;
+    this._scheduleOrderSlotDuration = scheduleOrderSlotDuration;
+    this._timeFormat = timeFormat;
   }
 
   String get restaurantName => _restaurantName;
-  String get restaurantOpenTime => _restaurantOpenTime;
-  String get restaurantCloseTime => _restaurantCloseTime;
   String get restaurantLogo => _restaurantLogo;
   String get restaurantAddress => _restaurantAddress;
   String get restaurantPhone => _restaurantPhone;
@@ -135,17 +142,15 @@ class ConfigModel {
   List<SocialMediaLink> get socialMediaLink => _socialMediaLink;
   String get softwareVersion => _softwareVersion;
   String get footerCopyright => _footerCopyright;
+  String get timeZone => _timeZone;
+  int get decimalPointSettings => _decimalPointSettings;
+  List<RestaurantScheduleTime> get restaurantScheduleTime =>
+      _restaurantScheduleTime;
+  int get scheduleOrderSlotDuration => _scheduleOrderSlotDuration;
+  String get timeFormat => _timeFormat;
 
   ConfigModel.fromJson(Map<String, dynamic> json) {
     _restaurantName = json['restaurant_name'];
-    _restaurantOpenTime = json['restaurant_open_time'] ?? '00:01';
-
-    if (json['restaurant_open_time'] != null) {
-      _restaurantOpenTime = json['restaurant_open_time'];
-    } else {
-      _restaurantOpenTime = "00:01";
-    }
-    _restaurantCloseTime = json['restaurant_close_time'];
     _restaurantLogo = json['restaurant_logo'];
     _restaurantAddress = json['restaurant_address'];
     _restaurantPhone = json['restaurant_phone'];
@@ -202,13 +207,31 @@ class ConfigModel {
     if (json['footer_text'] != null) {
       _footerCopyright = json['footer_text'];
     }
+    _timeZone = json['time_zone'];
+    _decimalPointSettings = json['decimal_point_settings'] ?? 1;
+
+    _restaurantScheduleTime = List<RestaurantScheduleTime>.from(
+        json["restaurant_schedule_time"]
+            .map((x) => RestaurantScheduleTime.fromJson(x)));
+
+    // try {
+    // }catch(_){
+    //   _restaurantScheduleTime = [];
+    // }
+
+    try {
+      _scheduleOrderSlotDuration = json['schedule_order_slot_duration'] ?? 30;
+    } catch (_) {
+      _scheduleOrderSlotDuration =
+          int.tryParse(json['schedule_order_slot_duration'] ?? 30);
+    }
+
+    _timeFormat = json['time_format'].toString() ?? '12';
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['restaurant_name'] = this._restaurantName;
-    data['restaurant_open_time'] = this._restaurantOpenTime;
-    data['restaurant_close_time'] = this._restaurantCloseTime;
     data['restaurant_logo'] = this._restaurantLogo;
     data['restaurant_address'] = this._restaurantAddress;
     data['restaurant_phone'] = this._restaurantPhone;
@@ -253,8 +276,35 @@ class ConfigModel {
     }
     data['software_version'] = this._softwareVersion;
     data['footer_text'] = this._footerCopyright;
+    data['time_zone'] = this._timeZone;
+    data['restaurant_schedule_time'] = this._restaurantScheduleTime;
     return data;
   }
+}
+
+class RestaurantScheduleTime {
+  RestaurantScheduleTime({
+    this.day,
+    this.openingTime,
+    this.closingTime,
+  });
+
+  String day;
+  String openingTime;
+  String closingTime;
+
+  factory RestaurantScheduleTime.fromJson(Map<String, dynamic> json) =>
+      RestaurantScheduleTime(
+        day: json["day"].toString(),
+        openingTime: json["opening_time"].toString(),
+        closingTime: json["closing_time"].toString(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "day": day,
+        "opening_time": openingTime,
+        "closing_time": closingTime,
+      };
 }
 
 class BaseUrls {

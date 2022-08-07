@@ -116,10 +116,10 @@ class _WebAppBarState extends State<WebAppBar> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Provider.of<SplashProvider>(context, listen: false)
-                              .isRestaurantClosed()
+                              .isRestaurantOpenNow(context)
                           ? Text(
                               '${getTranslated('restaurant_is_close_now', context)} '
-                              '${DateConverter.convertTimeToTime('${Provider.of<SplashProvider>(context, listen: false).configModel.restaurantOpenTime}:00')}',
+                              '${DateConverter.convertTimeToTime('${Provider.of<SplashProvider>(context, listen: false).configModel.restaurantScheduleTime}:00', context)}',
                               style: rubikRegular.copyWith(
                                   fontSize: 12, color: Colors.black),
                             )
