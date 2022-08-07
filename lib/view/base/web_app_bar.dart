@@ -119,7 +119,7 @@ class _WebAppBarState extends State<WebAppBar> {
                               .isRestaurantOpenNow(context)
                           ? Text(
                               '${getTranslated('restaurant_is_close_now', context)} '
-                              '${DateConverter.convertTimeToTime('${Provider.of<SplashProvider>(context, listen: false).configModel.restaurantScheduleTime}:00', context)}',
+                              '${DateConverter.convertTimeToTime('${Provider.of<SplashProvider>(context, listen: false).configModel.restaurantScheduleTime.first.closingTime}:00', context)}',
                               style: rubikRegular.copyWith(
                                   fontSize: 12, color: Colors.black),
                             )
