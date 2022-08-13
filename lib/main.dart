@@ -176,9 +176,11 @@ class _MyAppState extends State<MyApp> {
                     ? widget.orderId == null
                         ? Routes.getSplashRoute()
                         : Routes.getOrderDetailsRoute(widget.orderId)
-                    : splashProvider.configModel.maintenanceMode
-                        ? Routes.getMaintainRoute()
-                        : Routes.getMainRoute(),
+                    :
+                    // splashProvider.configModel.maintenanceMode
+                    //     ? Routes.getMaintainRoute()
+                    //     :
+                    Routes.getMainRoute(),
                 onGenerateRoute: RouterHelper.router.generator,
                 title: splashProvider.configModel != null
                     ? splashProvider.configModel.restaurantName ?? ''

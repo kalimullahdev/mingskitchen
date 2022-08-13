@@ -39,7 +39,6 @@ class CategoryPageView extends StatelessWidget {
           child: ListView.builder(
             itemCount: _initialLength,
             scrollDirection: Axis.horizontal,
-            // physics: NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             itemBuilder: (context, item) {
               int _currentIndex = item + currentIndex;
@@ -50,8 +49,6 @@ class CategoryPageView extends StatelessWidget {
                       ' ...'
                   : _name = categoryProvider.categoryList[_currentIndex].name;
 
-              // return OnHover(
-              //   builder: (isHover) {
               return Container(
                 margin: EdgeInsets.symmetric(horizontal: 15.0),
                 child: InkWell(
@@ -67,22 +64,14 @@ class CategoryPageView extends StatelessWidget {
                       categoryProvider.categoryList[_currentIndex].id
                           .toString(),
                     );
-                    // Navigator.pushNamed(
-                    //   context,
-                    //   Routes.getCategoryRoute(
-                    //       categoryProvider.categoryList[_currentIndex].id),
-                    //   arguments: CategoryScreen(
-                    //       categoryModel:
-                    //           categoryProvider.categoryList[_currentIndex]),
-                    // );
                   },
-                  // arguments:  category.categoryList[index].name),
                   child: Column(children: [
                     ClipOval(
                       child: FadeInImage.assetNetwork(
                         placeholder: Images.placeholder_image,
                         width: 125,
-                        height: 125, fit: BoxFit.cover,
+                        height: 125,
+                        fit: BoxFit.cover,
                         image: Provider.of<SplashProvider>(context,
                                         listen: false)
                                     .baseUrls !=
@@ -94,7 +83,6 @@ class CategoryPageView extends StatelessWidget {
                             width: 125,
                             height: 125,
                             fit: BoxFit.cover),
-                        // width: 100, height: 100, fit: BoxFit.cover,
                       ),
                     ),
                     Padding(
@@ -106,9 +94,6 @@ class CategoryPageView extends StatelessWidget {
                           child: Text(_name,
                               style: rubikMedium.copyWith(
                                 color: ColorResources.getWhiteAndBlack(context),
-                                // color: isHover
-                                //     ? Theme.of(context).primaryColor
-                                //     : ColorResources.getWhiteAndBlack(context),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis),

@@ -112,11 +112,11 @@ class _SplashScreenState extends State<SplashScreen> {
               !ResponsiveHelper.isWeb()) {
             Navigator.pushNamedAndRemoveUntil(
                 context, Routes.getUpdateRoute(), (route) => false);
-          } else if (Provider.of<SplashProvider>(context, listen: false)
-              .configModel
-              .maintenanceMode) {
-            Navigator.pushNamedAndRemoveUntil(
-                context, Routes.getMaintainRoute(), (route) => false);
+            // } else if (Provider.of<SplashProvider>(context, listen: false)
+            //     .configModel
+            //     .maintenanceMode) {
+            //   Navigator.pushNamedAndRemoveUntil(
+            //       context, Routes.getMaintainRoute(), (route) => false);
           } else {
             if (Provider.of<AuthProvider>(context, listen: false)
                 .isLoggedIn()) {

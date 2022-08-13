@@ -445,7 +445,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             ),
-
                             ResponsiveHelper.isMobile(context)
                                 ? SizedBox()
                                 : Center(
@@ -522,7 +521,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              //  if(ResponsiveHelper.isDesktop(context)) FooterView(),
             ]),
           ),
         ),
@@ -594,6 +592,7 @@ class ServiceCard extends StatelessWidget {
     );
   }
 }
+
 //ResponsiveHelper
 
 class SliverDelegate extends SliverPersistentHeaderDelegate {

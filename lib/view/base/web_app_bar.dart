@@ -326,17 +326,6 @@ class _WebAppBarState extends State<WebAppBar> {
                           ),
                         ),
                       ),
-
-                      // CustomButton(
-                      //           btnTxt:
-                      //       "Book A Table Online", //TODO: do translation here
-                      //   onTap: () => Navigator.pushNamed(
-                      //     context,
-                      //     Routes.getBookTableScreen(),
-                      //   ),
-                      //   backgroundColor:
-                      //       ColorResources.APPBAR_HEADER_COL0R,
-                      // ),
                       OnHover(
                         builder: (isHover) {
                           return InkWell(
@@ -454,7 +443,6 @@ class _WebAppBarState extends State<WebAppBar> {
                           );
                         }),
                       ),
-
                       InkWell(
                           onTap: () => Navigator.pushNamed(
                               context, Routes.getDashboardRoute('cart')),
